@@ -1,0 +1,291 @@
+import 'package:flutter/material.dart';
+
+class SignupView extends StatefulWidget {
+  const SignupView({super.key});
+
+  @override
+  State<SignupView> createState() => _SignupViewState();
+}
+
+class _SignupViewState extends State<SignupView> {
+  final _formKey = GlobalKey<FormState>();
+
+  final _fullNameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _fullNameCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
+    super.dispose();
+  }
+
+  void _signup() {
+    if (_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Account created successfully'),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 40,
+          ),
+
+          child: Form(
+            key: _formKey,
+
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 20),
+
+                // TITLE
+                const Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'Create Account',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      SizedBox(height: 8),
+
+                      Text(
+                        'Join SikhshaSathi',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                // FULL NAME
+                TextFormField(
+                  controller: _fullNameCtrl,
+
+                  decoration: InputDecoration(
+                    labelText: 'Full Name',
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter full name';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // EMAIL
+                TextFormField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter email';
+                    }
+
+                    final emailValid = RegExp(
+                      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                    ).hasMatch(value);
+
+                    if (!emailValid) {
+                      return 'Enter valid email';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // PASSWORD
+                TextFormField(
+                  controller: _passwordCtrl,
+                  obscureText: true,
+
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter password';
+                    }
+
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                // CONFIRM PASSWORD
+                TextFormField(
+                  controller: _confirmPasswordCtrl,
+                  obscureText: true,
+
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  validator: (value) {
+                    if (value != _passwordCtrl.text) {
+                      return 'Passwords do not match';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 30),
+
+                // REGISTER BUTTON
+                SizedBox(
+                  height: 50,
+
+                  child: ElevatedButton(
+                    onPressed: _signup,
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+
+                    child: const Text(
+                      'Register',
+
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 25),
+
+                // CONTINUE WITH
+                const Center(
+                  child: Text(
+                    'or continue with',
+
+                    style: TextStyle(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 26),
+
+                // SOCIAL ICONS
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.facebook,
+                      color: Colors.blue,
+                      size: 32,
+                    ),
+
+                    const SizedBox(width: 35),
+
+                    Image.network(
+                      'https://cdn-icons-png.flaticon.com/512/281/281764.png',
+                      width: 28,
+                      height: 28,
+                    ),
+
+                    const SizedBox(width: 35),
+
+                    const Icon(
+                      Icons.apple,
+                      size: 32,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 35),
+
+                // LOGIN
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Already have an account ? ',
+                    ),
+
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+
+                      child: const Text(
+                        'Login',
+
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
