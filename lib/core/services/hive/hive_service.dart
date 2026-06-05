@@ -1,0 +1,134 @@
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'package:sikhsha_sathi/core/constants/hive_table_constant.dart';
+import 'package:sikhsha_sathi/features/auth/data/models/auth_hive_model.dart';
+
+
+final hiveServiceProvider = Provider<HiveService>((ref) {
+  return HiveService();
+});
+
+class HiveService {
+
+  // ================= INIT DATABASE =================
+
+  Future<void> init() async {
+
+    final directory =
+        await getApplicationDocumentsDirectory();
+
+    final path =
+        '${directory.path}/${HiveTableConstant.dbName}';
+
+    Hive.init(path);
+
+    _registerAdapters();
+
+    await openBoxes();
+  }
+
+  // ================= REGISTER ADAPTER =================
+
+  void _registerAdapters() {
+
+    if (!Hive.isAdapterRegistered(
+      HiveTableConstant.authTypeId,
+    )) {
+
+      Hive.registerAdapter(
+        AuthHiveModelAdapter(),
+      );
+    }
+  }
+
+  // ================= OPEN BOXES =================
+
+  Future<void> openBoxes() async {
+
+    await Hive.openBox<AuthHiveModel>(
+      HiveTableConstant.authTable,
+    );
+  }
+
+  // ================= CLOSE DATABASE =================
+
+  Future<void> close() async {
+
+    await Hive.close();
+  }
+
+  // ===================================================
+  // AUTH QUERIES
+  // ===================================================
+
+  Box<AuthHiveModel> get _authBox =>
+      Hive.box<AuthHiveModel>(
+        HiveTableConstant.authTable,
+      );
+
+  // ================= REGISTER =================
+
+  Future<AuthHiveModel> registerUser(
+    AuthHiveModel model,
+  ) async {
+
+    await _authBox.put(
+      model.userId,
+      model,
+    );
+
+    return model;
+  }
+
+  // ================= LOGIN =================
+
+  Future<AuthHiveModel?> login(
+    String email,
+    String password,
+  ) async {
+
+    final users = _authBox.values.where(
+      (user) =>
+          user.email == email &&
+          user.password == password,
+    );
+
+    if (users.isNotEmpty) {
+      return users.first;
+    }
+
+    return null;
+  }
+
+  // ================= GET CURRENT USER =================
+
+  AuthHiveModel? getCurrentUser(
+    String authId,
+  ) {
+
+    return _authBox.get(authId);
+  }
+
+  // ================= CHECK EMAIL =================
+
+  bool isEmailExists(
+    String email,
+  ) {
+
+    final users = _authBox.values.where(
+      (user) => user.email == email,
+    );
+
+    return users.isNotEmpty;
+  }
+
+  // ================= LOGOUT =================
+
+  Future<void> logoutUser() async {
+
+    // later use shared preferences / token remove
+  }
+}
