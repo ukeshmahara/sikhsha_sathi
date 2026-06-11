@@ -7,115 +7,120 @@ import '../state/auth_state.dart';
 
 // Provider
 final authViewModelProvider =
-    NotifierProvider<AuthViewModel, AuthState>(
-  () => AuthViewModel(),
+NotifierProvider<AuthViewModel, AuthState>(
+() => AuthViewModel(),
 );
 
 class AuthViewModel extends Notifier<AuthState> {
-  late final RegisterUsecase _registerUsecase;
-  late final LoginUsecase _loginUsecase;
+late final RegisterUsecase _registerUsecase;
+late final LoginUsecase _loginUsecase;
 
-  @override
-  AuthState build() {
-    _registerUsecase =
-        ref.read(registerUsecaseProvider);
+@override
+AuthState build() {
+_registerUsecase =
+ref.read(registerUsecaseProvider);
 
-    _loginUsecase =
-        ref.read(loginUsecaseProvider);
 
-    return const AuthState();
-  }
+_loginUsecase =
+    ref.read(loginUsecaseProvider);
 
-  // ================= REGISTER =================
+return const AuthState();
 
-  Future<void> register({
-    required String fullName,
-    required String email,
-    required String password,
-  }) async {
+}
+
+// ================= REGISTER =================
+
+Future<void> register({
+required String fullName,
+required String email,
+required String password,
+required String phoneNumber,
+}) async {
+state = state.copyWith(
+status: AuthStatus.loading,
+);
+
+await Future.delayed(
+  const Duration(seconds: 2),
+);
+
+final params = RegisterUsecaseParams(
+  fullName: fullName,
+  email: email,
+  password: password,
+  phoneNumber: phoneNumber,
+);
+
+final result =
+    await _registerUsecase(params);
+
+result.fold(
+  (failure) {
     state = state.copyWith(
-      status: AuthStatus.loading,
+      status: AuthStatus.error,
+      errorMessage: failure.message,
     );
+  },
+  (isRegistered) {
+    if (isRegistered) {
+      state = state.copyWith(
+        status: AuthStatus.registered,
+      );
+    } else {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage:
+            "Registration Failed",
+      );
+    }
+  },
+);
 
-    await Future.delayed(
-      const Duration(seconds: 2),
-    );
+}
 
-    final params = RegisterUsecaseParams(
-      fullName: fullName,
-      email: email,
-      password: password,
-    );
+// ================= LOGIN =================
 
-    final result =
-        await _registerUsecase(params);
+Future<void> login({
+required String email,
+required String password,
+}) async {
+state = state.copyWith(
+status: AuthStatus.loading,
+);
 
-    result.fold(
-      (failure) {
-        state = state.copyWith(
-          status: AuthStatus.error,
-          errorMessage: failure.message,
-        );
-      },
-      (isRegistered) {
-        if (isRegistered) {
-          state = state.copyWith(
-            status: AuthStatus.authenticated,
-          );
-        } else {
-          state = state.copyWith(
-            status: AuthStatus.error,
-            errorMessage:
-                "Registration Failed",
-          );
-        }
-      },
-    );
-  }
+await Future.delayed(
+  const Duration(seconds: 2),
+);
 
-  // ================= LOGIN =================
+final params = LoginParams(
+  email: email,
+  password: password,
+);
 
-  Future<void> login({
-    required String email,
-    required String password,
-  }) async {
+final result =
+    await _loginUsecase(params);
+
+result.fold(
+  (failure) {
     state = state.copyWith(
-      status: AuthStatus.loading,
+      status: AuthStatus.error,
+      errorMessage: failure.message,
     );
-
-    await Future.delayed(
-      const Duration(seconds: 2),
+  },
+  (user) {
+    state = state.copyWith(
+      status: AuthStatus.authenticated,
+      user: user,
     );
-
-    
-    final params = LoginParams(
-     email: email,
-     password: password,
-    );
+  },
+);
 
 
-    final result =
-        await _loginUsecase(params);
+}
 
-    result.fold(
-      (failure) {
-        state = state.copyWith(
-          status: AuthStatus.error,
-          errorMessage: failure.message,
-        );
-      },
-      (user) {
-        state = state.copyWith(
-          status: AuthStatus.authenticated,
-          user: user,
-        );
-      },
-    );
-  }
+// ================= RESET =================
 
-  // ================= RESET =================
-
-  void resetState() {
-    state = const AuthState();
-  }
+void resetState() {
+state = const AuthState();
+}
 }
