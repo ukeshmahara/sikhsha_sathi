@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'login_view.dart';
 import '../state/auth_state.dart';
 import '../view_model/auth_view_model.dart';
 
@@ -24,22 +24,27 @@ class _SignupViewState
   final _emailCtrl =
       TextEditingController();
 
+  final _phoneCtrl =
+      TextEditingController();
+
   final _passwordCtrl =
       TextEditingController();
 
   final _confirmPasswordCtrl =
       TextEditingController();
 
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
   @override
   void dispose() {
     _fullNameCtrl.dispose();
     _emailCtrl.dispose();
+    _phoneCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmPasswordCtrl.dispose();
     super.dispose();
   }
-
-  // ================= SIGNUP =================
 
   Future<void> _signup() async {
 
@@ -57,6 +62,9 @@ class _SignupViewState
         email:
             _emailCtrl.text.trim(),
 
+        phoneNumber:
+            _phoneCtrl.text.trim(),
+
         password:
             _passwordCtrl.text.trim(),
       );
@@ -73,8 +81,6 @@ class _SignupViewState
       authViewModelProvider,
       (previous, next) {
 
-        // ================= SUCCESS =================
-
         if (next.status ==
             AuthStatus.registered) {
 
@@ -87,10 +93,14 @@ class _SignupViewState
             ),
           );
 
-          Navigator.pop(context);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  const LoginView(),
+            ),
+          );
         }
-
-        // ================= ERROR =================
 
         if (next.status ==
             AuthStatus.error) {
@@ -130,15 +140,12 @@ class _SignupViewState
 
                 const SizedBox(height: 20),
 
-                // ================= TITLE =================
-
                 const Center(
                   child: Column(
                     children: [
 
                       Text(
                         'Create Account',
-
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight:
@@ -150,7 +157,6 @@ class _SignupViewState
 
                       Text(
                         'Join SikhshaSathi',
-
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 14,
@@ -161,8 +167,6 @@ class _SignupViewState
                 ),
 
                 const SizedBox(height: 40),
-
-                // ================= FULL NAME =================
 
                 TextFormField(
                   controller: _fullNameCtrl,
@@ -193,8 +197,6 @@ class _SignupViewState
                 ),
 
                 const SizedBox(height: 20),
-
-                // ================= EMAIL =================
 
                 TextFormField(
                   controller: _emailCtrl,
@@ -229,7 +231,8 @@ class _SignupViewState
 
                     if (!emailValid) {
 
-                      return 'Enter valid email';
+                      return
+                          'Enter valid email';
                     }
 
                     return null;
@@ -238,15 +241,70 @@ class _SignupViewState
 
                 const SizedBox(height: 20),
 
-                // ================= PASSWORD =================
-
                 TextFormField(
-                  controller: _passwordCtrl,
+                  controller: _phoneCtrl,
 
-                  obscureText: true,
+                  keyboardType:
+                      TextInputType.phone,
 
                   decoration: InputDecoration(
-                    labelText: 'Password',
+                    labelText: 'Phone Number',
+
+                    border:
+                        OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(
+                        10,
+                      ),
+                    ),
+                  ),
+
+                  validator: (value) {
+
+                    if (value == null ||
+                        value.trim().isEmpty) {
+
+                      return
+                          'Please enter phone number';
+                    }
+
+                    if (value.length < 10) {
+
+                      return
+                          'Enter valid phone number';
+                    }
+
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                TextFormField(
+                  controller:
+                      _passwordCtrl,
+
+                  obscureText:
+                      _obscurePassword,
+
+                  decoration: InputDecoration(
+                    labelText:
+                        'Password',
+
+                    suffixIcon:
+                        IconButton(
+                      icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword =
+                              !_obscurePassword;
+                        });
+                      },
+                    ),
 
                     border:
                         OutlineInputBorder(
@@ -278,17 +336,31 @@ class _SignupViewState
 
                 const SizedBox(height: 20),
 
-                // ================= CONFIRM PASSWORD =================
-
                 TextFormField(
                   controller:
                       _confirmPasswordCtrl,
 
-                  obscureText: true,
+                  obscureText:
+                      _obscureConfirmPassword,
 
                   decoration: InputDecoration(
                     labelText:
                         'Confirm Password',
+
+                    suffixIcon:
+                        IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword =
+                              !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
 
                     border:
                         OutlineInputBorder(
@@ -314,57 +386,29 @@ class _SignupViewState
 
                 const SizedBox(height: 30),
 
-                // ================= BUTTON =================
-
                 SizedBox(
                   height: 50,
 
                   child: ElevatedButton(
-
                     onPressed:
                         authState.status ==
                                 AuthStatus.loading
                             ? null
                             : _signup,
 
-                    style:
-                        ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Colors.blue,
-
-                      shape:
-                          RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.circular(
-                          10,
-                        ),
-                      ),
-                    ),
-
                     child:
                         authState.status ==
                                 AuthStatus.loading
-
                             ? const CircularProgressIndicator(
-                                color:
-                                    Colors.white,
+                                color: Colors.white,
                               )
-
                             : const Text(
                                 'Register',
-
-                                style: TextStyle(
-                                  color:
-                                      Colors.white,
-                                  fontSize: 16,
-                                ),
                               ),
                   ),
                 ),
 
                 const SizedBox(height: 35),
-
-                // ================= LOGIN =================
 
                 Row(
                   mainAxisAlignment:
@@ -377,14 +421,12 @@ class _SignupViewState
                     ),
 
                     GestureDetector(
-
                       onTap: () {
                         Navigator.pop(context);
                       },
 
                       child: const Text(
                         'Login',
-
                         style: TextStyle(
                           color: Colors.blue,
                           fontWeight:
