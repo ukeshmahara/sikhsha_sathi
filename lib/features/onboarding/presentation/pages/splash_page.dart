@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
+
 import 'onboarding_page.dart';
 
 class SplashPage extends StatefulWidget {
@@ -22,37 +21,14 @@ class _SplashPageState
 
     Timer(
       const Duration(seconds: 2),
-          () {
-
-        final userBox =
-        Hive.box('userBox');
-
-        final isLoggedIn =
-            userBox.get(
-              'isLoggedIn',
-              defaultValue: false,
-            );
-
-        if(isLoggedIn){
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-              const LoginView(),
-            ),
-          );
-
-        } else {
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-              const OnboardingPage(),
-            ),
-          );
-        }
+      () {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                const OnboardingPage(),
+          ),
+        );
       },
     );
   }
@@ -61,12 +37,10 @@ class _SplashPageState
   Widget build(BuildContext context) {
 
     return Scaffold(
-
       body: Center(
-
         child: Column(
           mainAxisAlignment:
-          MainAxisAlignment.center,
+              MainAxisAlignment.center,
           children: [
 
             Image.asset(
@@ -80,7 +54,8 @@ class _SplashPageState
               'ShikshaSathi',
               style: TextStyle(
                 fontSize: 30,
-                fontWeight: FontWeight.bold,
+                fontWeight:
+                    FontWeight.bold,
               ),
             ),
           ],
