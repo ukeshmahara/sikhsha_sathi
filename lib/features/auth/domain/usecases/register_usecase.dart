@@ -1,4 +1,3 @@
-
 import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,15 +13,16 @@ import 'package:sikhsha_sathi/features/auth/domain/repositories/auth_repository.
 // ================= PARAMS =================
 
 class RegisterUsecaseParams extends Equatable {
-
   final String fullName;
   final String email;
   final String password;
+  final String phoneNumber;
 
   const RegisterUsecaseParams({
     required this.fullName,
     required this.email,
     required this.password,
+    required this.phoneNumber,
   });
 
   @override
@@ -30,6 +30,7 @@ class RegisterUsecaseParams extends Equatable {
         fullName,
         email,
         password,
+        phoneNumber,
       ];
 }
 
@@ -37,7 +38,6 @@ class RegisterUsecaseParams extends Equatable {
 
 final registerUsecaseProvider =
     Provider<RegisterUsecase>((ref) {
-
   final repository =
       ref.read(authRepositoryProvider);
 
@@ -54,7 +54,6 @@ class RegisterUsecase
           bool,
           RegisterUsecaseParams
         > {
-
   final IAuthRepository
       _authRepository;
 
@@ -69,11 +68,11 @@ class RegisterUsecase
       call(
     RegisterUsecaseParams params,
   ) {
-
     final entity = AuthEntity(
       fullName: params.fullName,
       email: params.email,
       password: params.password,
+      phoneNumber: params.phoneNumber,
     );
 
     return _authRepository
