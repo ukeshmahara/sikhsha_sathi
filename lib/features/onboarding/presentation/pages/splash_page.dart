@@ -1,66 +1,104 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../dashboard/presentation/pages/dashboard_page.dart';
+
+import '../../../../core/services/storage/user_session_service.dart';
 
 import 'onboarding_page.dart';
 
-class SplashPage extends StatefulWidget {
-  const SplashPage({super.key});
+class SplashPage extends ConsumerStatefulWidget {
+const SplashPage({super.key});
 
-  @override
-  State<SplashPage> createState() =>
-      _SplashPageState();
+@override
+ConsumerState<SplashPage> createState() =>
+_SplashPageState();
 }
 
 class _SplashPageState
-    extends State<SplashPage> {
+extends ConsumerState<SplashPage> {
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+super.initState();
 
-    Timer(
-      const Duration(seconds: 2),
-      () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                const OnboardingPage(),
-          ),
-        );
-      },
-    );
-  }
+_navigate();
 
-  @override
-  Widget build(BuildContext context) {
+}
 
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
+Future<void> _navigate() async {
 
-            Image.asset(
-              'assets/images/logo.png',
-              width: 150,
-            ),
+await Future.delayed(
+  const Duration(seconds: 2),
+);
 
-            const SizedBox(height: 20),
+if (!mounted) return;
 
-            const Text(
-              'ShikshaSathi',
-              style: TextStyle(
-                fontSize: 30,
-                fontWeight:
-                    FontWeight.bold,
-              ),
-            ),
-          ],
+final userSessionService =
+    ref.read(
+  userSessionServiceProvider,
+);
+
+final isLoggedIn =
+    userSessionService.isLoggedIn();
+
+if (isLoggedIn) {
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) =>
+          const DashboardPage(),
+    ),
+  );
+
+} else {
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(
+      builder: (_) =>
+          const OnboardingPage(),
+    ),
+  );
+}
+
+}
+
+@override
+Widget build(BuildContext context) {
+
+return Scaffold(
+  body: Center(
+    child: Column(
+      mainAxisAlignment:
+          MainAxisAlignment.center,
+      children: [
+
+        Image.asset(
+          'assets/images/logo.png',
+          width: 150,
         ),
-      ),
-    );
-  }
+
+        const SizedBox(
+          height: 20,
+        ),
+
+        const Text(
+          'ShikshaSathi',
+          style: TextStyle(
+            fontSize: 30,
+            fontWeight:
+                FontWeight.bold,
+          ),
+        ),
+      ],
+    ),
+  ),
+);
+
+
+}
 }
