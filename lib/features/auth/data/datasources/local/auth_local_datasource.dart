@@ -1,131 +1,186 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/services/hive/hive_service.dart';
+import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
 
 import 'package:sikhsha_sathi/features/auth/data/datasources/auth_datasource.dart';
-
 import 'package:sikhsha_sathi/features/auth/data/models/auth_hive_model.dart';
 
 // ================= PROVIDER =================
 
 final authLocalDatasourceProvider =
-    Provider<AuthLocalDatasource>((ref) {
+Provider<AuthLocalDatasource>((ref) {
 
-  final hiveService =
-      ref.read(hiveServiceProvider);
+final hiveService =
+ref.read(hiveServiceProvider);
 
-  return AuthLocalDatasource(
-    hiveService: hiveService,
-  );
+final userSessionService =
+ref.read(userSessionServiceProvider);
+
+return AuthLocalDatasource(
+hiveService: hiveService,
+userSessionService:
+userSessionService,
+);
 });
 
 // ================= DATASOURCE =================
 
 class AuthLocalDatasource
-    implements IAuthDataSource {
+implements IAuthLocalDataSource {
 
-  final HiveService _hiveService;
+final HiveService _hiveService;
 
-  AuthLocalDatasource({
-    required HiveService hiveService,
-  }) : _hiveService = hiveService;
+final UserSessionService
+_userSessionService;
 
-  // ================= REGISTER =================
+AuthLocalDatasource({
+required HiveService hiveService,
+required UserSessionService
+userSessionService,
+})  : _hiveService = hiveService,
+_userSessionService =
+userSessionService;
 
-  @override
-  Future<bool> register(
-    AuthHiveModel model,
-  ) async {
+// ================= REGISTER =================
 
-    try {
+@override
+Future<bool> register(
+AuthHiveModel model,
+) async {
 
-      await _hiveService.registerUser(
-        model,
-      );
+try {
 
-      return true;
+  await _hiveService.registerUser(
+    model,
+  );
 
-    } catch (e) {
+  return true;
 
-      return false;
-    }
+} catch (e) {
+
+  return false;
+}
+
+
+}
+
+// ================= LOGIN =================
+
+@override
+Future<AuthHiveModel?> login(
+String email,
+String password,
+) async {
+
+
+try {
+
+  final user =
+      await _hiveService.login(
+    email,
+    password,
+  );
+
+  if (user != null) {
+
+    await _userSessionService
+        .saveUserSession(
+      userId: user.userId,
+      email: user.email,
+      fullName: user.fullName,
+      phoneNumber:
+          user.phoneNumber,
+    );
   }
 
-  // ================= LOGIN =================
+  return user;
 
-  @override
-  Future<AuthHiveModel?> login(
-    String email,
-    String password,
-  ) async {
+} catch (e) {
 
-    try {
+  return null;
+}
 
-      final user =
-          await _hiveService.login(
-        email,
-        password,
-      );
+}
 
-      return user;
+// ================= GET CURRENT USER =================
 
-    } catch (e) {
+@override
+Future<AuthHiveModel?> getCurrentUser()
+async {
 
-      return null;
-    }
+try {
+
+  if (!_userSessionService
+      .isLoggedIn()) {
+    return null;
   }
 
-  // ================= GET CURRENT USER =================
+  final userId =
+      _userSessionService
+          .getUserId();
 
-  @override
-  Future<AuthHiveModel?> getCurrentUser() async {
-
-    try {
-
-      return null;
-
-    } catch (e) {
-
-      return null;
-    }
+  if (userId == null) {
+    return null;
   }
 
-  // ================= LOGOUT =================
+  return _hiveService
+      .getCurrentUser(
+    userId,
+  );
 
-  @override
-  Future<bool> logout() async {
+} catch (e) {
 
-    try {
+  return null;
+}
 
-      await _hiveService.logoutUser();
 
-      return true;
+}
 
-    } catch (e) {
+// ================= LOGOUT =================
 
-      return false;
-    }
-  }
+@override
+Future<bool> logout() async {
 
-  // ================= CHECK EMAIL =================
+try {
 
-  @override
-  Future<bool> isEmailExists(
-    String email,
-  ) async {
+  await _userSessionService
+      .clearSession();
 
-    try {
+  await _hiveService
+      .logoutUser();
 
-      final exists =
-          _hiveService.isEmailExists(
-        email,
-      );
+  return true;
 
-      return exists;
+} catch (e) {
 
-    } catch (e) {
+  return false;
+}
 
-      return false;
-    }
-  }
+
+}
+
+// ================= CHECK EMAIL =================
+
+@override
+Future<bool> isEmailExists(
+String email,
+) async {
+
+try {
+
+  final exists =
+      _hiveService.isEmailExists(
+    email,
+  );
+
+  return exists;
+
+} catch (e) {
+
+  return false;
+}
+
+
+}
 }
