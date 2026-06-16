@@ -1,26 +1,36 @@
-import 'package:sikhsha_sathi/features/auth/data/models/auth_hive_model.dart';
+import '../models/auth_hive_model.dart';
+import '../models/auth_api_model.dart';
 
-abstract interface class IAuthDataSource {
-
-  // REGISTER
+abstract interface class IAuthLocalDataSource {
   Future<bool> register(
     AuthHiveModel model,
   );
 
-  // LOGIN
   Future<AuthHiveModel?> login(
     String email,
     String password,
   );
 
-  // GET CURRENT USER
   Future<AuthHiveModel?> getCurrentUser();
 
-  // LOGOUT
   Future<bool> logout();
 
-  // CHECK EMAIL
   Future<bool> isEmailExists(
     String email,
   );
+}
+
+abstract interface class IAuthRemoteDataSource {
+  Future<AuthApiModel> register(
+    AuthApiModel model,
+  );
+
+  Future<AuthApiModel?> login(
+    String email,
+    String password,
+  );
+
+  Future<AuthApiModel?> getCurrentUser();
+
+  Future<bool> logout();
 }
