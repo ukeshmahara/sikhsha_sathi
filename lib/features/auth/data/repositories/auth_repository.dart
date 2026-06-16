@@ -1,89 +1,110 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sikhsha_sathi/core/error/failures.dart';
+import '../../../../core/error/failures.dart';
+import '../../../../core/services/connectivity/network_info.dart';
 
-import 'package:sikhsha_sathi/features/auth/domain/entities/auth_entity.dart';
+import '../../domain/entities/auth_entity.dart';
+import '../../domain/repositories/auth_repository.dart';
 
-import 'package:sikhsha_sathi/features/auth/domain/repositories/auth_repository.dart';
+import '../datasources/auth_datasource.dart';
+import '../datasources/local/auth_local_datasource.dart';
+import '../datasources/remote/auth_remote_datasource.dart';
 
-import 'package:sikhsha_sathi/features/auth/data/datasources/auth_datasource.dart';
-
-import 'package:sikhsha_sathi/features/auth/data/datasources/local/auth_local_datasource.dart';
-
-import 'package:sikhsha_sathi/features/auth/data/models/auth_hive_model.dart';
-
-// ================= PROVIDER =================
+import '../models/auth_api_model.dart';
+import '../models/auth_hive_model.dart';
 
 final authRepositoryProvider =
     Provider<IAuthRepository>((ref) {
-
   return AuthRepository(
-    authDatasource:
-        ref.read(
-      authLocalDatasourceProvider,
-    ),
+    remoteDatasource:
+        ref.read(authRemoteDatasourceProvider),
+    localDatasource:
+        ref.read(authLocalDatasourceProvider),
+    networkInfo:
+        ref.read(networkInfoProvider),
   );
 });
 
-// ================= REPOSITORY =================
-
 class AuthRepository
     implements IAuthRepository {
+  final IAuthRemoteDataSource
+      _remoteDatasource;
 
-  final IAuthDataSource
-      _authDatasource;
+  final IAuthLocalDataSource
+      _localDatasource;
+
+  final NetworkInfo _networkInfo;
 
   AuthRepository({
-    required IAuthDataSource
-        authDatasource,
-  }) : _authDatasource =
-          authDatasource;
-
-  // ================= REGISTER =================
+    required IAuthRemoteDataSource
+        remoteDatasource,
+    required IAuthLocalDataSource
+        localDatasource,
+    required NetworkInfo networkInfo,
+  })  : _remoteDatasource =
+            remoteDatasource,
+        _localDatasource =
+            localDatasource,
+        _networkInfo = networkInfo;
 
   @override
   Future<Either<Failure, bool>>
       register(
     AuthEntity entity,
   ) async {
-
     try {
+      if (await _networkInfo.isConnected) {
+        final apiModel =
+            AuthApiModel.fromEntity(
+          entity,
+        );
 
-      final model =
-          AuthHiveModel.fromEntity(
-        entity,
-      );
+        await _remoteDatasource
+            .register(apiModel);
 
-      final result =
-          await _authDatasource
-              .register(
-        model,
-      );
+        return const Right(true);
+      } else {
+        final exists =
+            await _localDatasource
+                .isEmailExists(
+          entity.email,
+        );
 
-      if (result) {
+        if (exists) {
+          return const Left(
+            LocalDatabaseFailure(
+              message:
+                  "Email already exists",
+            ),
+          );
+        }
+
+        final hiveModel =
+            AuthHiveModel(
+          userId: entity.userId,
+          fullName: entity.fullName,
+          email: entity.email,
+          password: entity.password,
+          phoneNumber:
+              entity.phoneNumber,
+        );
+
+        await _localDatasource
+            .register(
+          hiveModel,
+        );
 
         return const Right(true);
       }
-
-      return Left(
-        LocalDatabaseFailure(
-          message:
-              "Failed to register user",
-        ),
-      );
-
     } catch (e) {
-
       return Left(
-        LocalDatabaseFailure(
+        ApiFailure(
           message: e.toString(),
         ),
       );
     }
   }
-
-  // ================= LOGIN =================
 
   @override
   Future<Either<Failure, AuthEntity>>
@@ -91,69 +112,78 @@ class AuthRepository
     String email,
     String password,
   ) async {
-
     try {
+      if (await _networkInfo.isConnected) {
+        final result =
+            await _remoteDatasource
+                .login(
+          email,
+          password,
+        );
 
-      final result =
-          await _authDatasource.login(
-        email,
-        password,
-      );
+        if (result == null) {
+          return const Left(
+            ApiFailure(
+              message:
+                  "Invalid credentials",
+            ),
+          );
+        }
 
-      if (result != null) {
+        return Right(
+          result.toEntity(),
+        );
+      } else {
+        final result =
+            await _localDatasource
+                .login(
+          email,
+          password,
+        );
 
-        final entity =
-            result.toEntity();
+        if (result == null) {
+          return const Left(
+            LocalDatabaseFailure(
+              message:
+                  "Invalid credentials",
+            ),
+          );
+        }
 
-        return Right(entity);
+        return Right(
+          result.toEntity(),
+        );
       }
-
-      return Left(
-        LocalDatabaseFailure(
-          message:
-              "Invalid email or password",
-        ),
-      );
-
     } catch (e) {
-
       return Left(
-        LocalDatabaseFailure(
+        ApiFailure(
           message: e.toString(),
         ),
       );
     }
   }
-
-  // ================= GET CURRENT USER =================
 
   @override
   Future<Either<Failure, AuthEntity>>
       getCurrentUser() async {
-
     try {
-
-      final result =
-          await _authDatasource
+      final user =
+          await _localDatasource
               .getCurrentUser();
 
-      if (result != null) {
-
-        final entity =
-            result.toEntity();
-
-        return Right(entity);
+      if (user == null) {
+        return const Left(
+          LocalDatabaseFailure(
+            message:
+                "No user logged in",
+          ),
+        );
       }
 
-      return Left(
-        LocalDatabaseFailure(
-          message:
-              "User not found",
-        ),
+      return Right(
+        user.toEntity(),
       );
-
     } catch (e) {
-
       return Left(
         LocalDatabaseFailure(
           message: e.toString(),
@@ -162,34 +192,20 @@ class AuthRepository
     }
   }
 
-  // ================= LOGOUT =================
-
   @override
   Future<Either<Failure, bool>>
       logout() async {
-
     try {
+      await _remoteDatasource
+          .logout();
 
-      final result =
-          await _authDatasource
-              .logout();
+      await _localDatasource
+          .logout();
 
-      if (result) {
-
-        return const Right(true);
-      }
-
-      return Left(
-        LocalDatabaseFailure(
-          message:
-              "Failed to logout",
-        ),
-      );
-
+      return const Right(true);
     } catch (e) {
-
       return Left(
-        LocalDatabaseFailure(
+        ApiFailure(
           message: e.toString(),
         ),
       );
