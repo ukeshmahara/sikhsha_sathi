@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/profile_tab.dart';
 
 import '../providers/bottom_nav_provider.dart';
 
-import '../widgets/home_tab.dart';
-import '../widgets/search_tab.dart';
-import '../widgets/compare_tab.dart';
-import '../widgets/favourite_tab.dart';
-import '../widgets/profile_tab.dart';
+import 'home_tab.dart';
+import 'search_tab.dart';
+import 'compare_tab.dart';
+import 'favourite_tab.dart';
+import '../widgets/category_card.dart';
+import '../widgets/school_card.dart';
 
 class DashboardPage
     extends ConsumerWidget {

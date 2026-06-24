@@ -1,132 +1,72 @@
 import 'package:flutter/material.dart';
 
+import '../widgets/category_card.dart';
+import '../widgets/school_card.dart';
+
 class HomeTab extends StatelessWidget {
+
   const HomeTab({super.key});
-
-  // CATEGORY ITEM
-  Widget categoryItem(String image, String title) {
-    return Column(
-      children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-          ),
-          child: ClipOval(
-            child: Image.asset(
-              image,
-              fit: BoxFit.cover,
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // SCHOOL CARD
-  Widget schoolCard(
-    String image,
-    String schoolName,
-    String location,
-  ) {
-    return Container(
-      width: 170,
-      margin: const EdgeInsets.only(left: 4, right: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(18),
-            ),
-            child: Image.asset(
-              image,
-              height: 110,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  schoolName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  location,
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
+
     return SafeArea(
+
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+
+          crossAxisAlignment:
+          CrossAxisAlignment.start,
+
           children: [
-            // TOP BLUE CONTAINER
+
+            // TOP BLUE SECTION
             Container(
+
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4D8DFF),
-                borderRadius: BorderRadius.circular(20),
+
+              decoration: const BoxDecoration(
+                color: Colors.blue,
+
+                borderRadius:
+                BorderRadius.only(
+                  bottomLeft:
+                  Radius.circular(25),
+
+                  bottomRight:
+                  Radius.circular(25),
+                ),
               ),
+
               child: const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                mainAxisAlignment:
+                MainAxisAlignment.spaceBetween,
+
                 children: [
+
                   Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+
                     children: [
+
                       Text(
-                        "Hello, Ukesh",
+                        'Hello, Ukesh',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                          fontWeight:
+                          FontWeight.bold,
                         ),
                       ),
+
                       SizedBox(height: 8),
+
                       Text(
-                        "Find the best school for you",
+                        'Find the best school for you',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
@@ -134,6 +74,7 @@ class HomeTab extends StatelessWidget {
                       ),
                     ],
                   ),
+
                   Icon(
                     Icons.notifications_none,
                     color: Colors.white,
@@ -143,180 +84,312 @@ class HomeTab extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 24),
+            Padding(
 
-            // SEARCH BAR
-            Row(
-              children: [
-                Expanded(
-                  child: SizedBox(
-                    height: 50,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Search school, keyword",
-                        prefixIcon: const Icon(Icons.search),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide.none,
+              padding: const EdgeInsets.all(16),
+
+              child: Column(
+
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
+
+                children: [
+
+                  // SEARCH
+                  Row(
+
+                    children: [
+
+                      Expanded(
+
+                        child: TextField(
+
+                          decoration: InputDecoration(
+
+                            hintText:
+                            'Search school, keyword',
+
+                            prefixIcon:
+                            const Icon(Icons.search),
+
+                            filled: true,
+
+                            fillColor:
+                            Colors.grey.shade100,
+
+                            border:
+                            OutlineInputBorder(
+                              borderRadius:
+                              BorderRadius.circular(15),
+                              borderSide:
+                              BorderSide.none,
+                            ),
+                          ),
                         ),
                       ),
+
+                      const SizedBox(width: 10),
+
+                      Container(
+
+                        padding:
+                        const EdgeInsets.all(15),
+
+                        decoration: BoxDecoration(
+                          borderRadius:
+                          BorderRadius.circular(15),
+
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+
+                        child: const Icon(
+                          Icons.tune,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // LOCATION
+                  const Row(
+
+                    children: [
+
+                      Icon(
+                        Icons.location_on,
+                        color: Colors.blue,
+                      ),
+
+                      SizedBox(width: 10),
+
+                      Text(
+                        'Kathmandu, Nepal',
+                        style: TextStyle(
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // CATEGORY
+                  Container(
+
+                    padding: const EdgeInsets.all(15),
+
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+
+                      borderRadius:
+                      BorderRadius.circular(20),
+
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.shade200,
+                          blurRadius: 5,
+                        ),
+                      ],
+                    ),
+
+                    child: const Row(
+
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceAround,
+
+                      children: [
+
+                        CategoryCard(
+                          image:
+                          'assets/images/international_school.png',
+
+                          title:
+                          'International Schools',
+
+                          color:
+                          Colors.blue,
+                        ),
+
+                        CategoryCard(
+                          image:
+                          'assets/images/public_school.png',
+
+                          title:
+                          'Public Schools',
+
+                          color:
+                          Colors.green,
+                        ),
+
+                        CategoryCard(
+                          image:
+                          'assets/images/budget_friendly.png',
+
+                          title:
+                          'Budget Friendly',
+
+                          color:
+                          Colors.purple,
+                        ),
+
+                        CategoryCard(
+                          image:
+                          'assets/images/top_rated.png',
+
+                          title:
+                          'Top Rated',
+
+                          color:
+                          Colors.orange,
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.tune),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 24),
+                  const SizedBox(height: 30),
 
-            // LOCATION
-            const Row(
-              children: [
-                Icon(Icons.location_on, color: Colors.blue),
-                SizedBox(width: 6),
-                Text(
-                  "Kathmandu, Nepal",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+                  // RECOMMENDED
+                  const Row(
 
-            const SizedBox(height: 24),
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
 
-            // CATEGORY SECTION (FIXED WRAP)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 20,
-                horizontal: 10,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Wrap(
-                alignment: WrapAlignment.spaceAround,
-                spacing: 20,
-                runSpacing: 20,
-                children: [
-                  categoryItem(
-                    'assets/images/international_school.png',
-                    'International\nSchools',
-                  ),
-                  categoryItem(
-                    'assets/images/public_school.png',
-                    'Public\nSchools',
-                  ),
-                  categoryItem(
-                    'assets/images/budget_friendly.png',
-                    'Budget\nFriendly',
-                  ),
-                  categoryItem(
-                    'assets/images/top_rated.png',
-                    'Top\nRated',
-                  ),
-                ],
-              ),
-            ),
+                    children: [
 
-            const SizedBox(height: 30),
+                      Text(
+                        'Recommended for You',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight:
+                          FontWeight.bold,
+                        ),
+                      ),
 
-            // RECOMMENDED TITLE
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Recommended for You",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                      Text(
+                        'See All',
+                        style: TextStyle(
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text("See All"),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 15),
+                  const SizedBox(height: 20),
 
-            // RECOMMENDED SCHOOLS
-            SizedBox(
-              height: 220,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(right: 10),
-                children: [
-                  schoolCard(
-                    'assets/images/lincoln_school.jpg',
-                    'Lincoln School',
-                    'Pulchowk, Kathmandu',
+                  SizedBox(
+
+                    height: 230,
+
+                    child: ListView(
+
+                      scrollDirection:
+                      Axis.horizontal,
+
+                      children: const [
+
+                        SchoolCard(
+                          image:
+                          'assets/images/lincoln_school.jpg',
+
+                          title:
+                          'Lincoln School',
+
+                          location:
+                          'Pulchowk, Kathmandu',
+                        ),
+
+                        SchoolCard(
+                          image:
+                          'assets/images/british_school.jpg',
+
+                          title:
+                          'The British School',
+
+                          location:
+                          'Kathmandu',
+                        ),
+                      ],
+                    ),
                   ),
-                  schoolCard(
-                    'assets/images/british_school.jpg',
-                    'The British School',
-                    'Kathmandu',
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 20),
+                  const SizedBox(height: 30),
 
-            // POPULAR TITLE
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Popular Schools",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text("See All"),
-                ),
-              ],
-            ),
+                  // POPULAR
+                  const Row(
 
-            const SizedBox(height: 15),
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
 
-            // POPULAR SCHOOLS
-            SizedBox(
-              height: 220,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(right: 10),
-                children: [
-                  schoolCard(
-                    'assets/images/malpi_international.jpg',
-                    'Malpi International',
-                    'Bungamati, Lalitpur',
+                    children: [
+
+                      Text(
+                        'Popular Schools',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight:
+                          FontWeight.bold,
+                        ),
+                      ),
+
+                      Text(
+                        'See All',
+                        style: TextStyle(
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ],
                   ),
-                  schoolCard(
-                    'assets/images/budhanilkantha.jpg',
-                    'Kathmandu International',
-                    'Kathmandu',
-                  ),
-                  schoolCard(
-                    'assets/images/budhanilkantha.jpg',
-                    'Budhanilkantha School',
-                    'Kathmandu',
+
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+
+                    height: 230,
+
+                    child: ListView(
+
+                      scrollDirection:
+                      Axis.horizontal,
+
+                      children: const [
+
+                        SchoolCard(
+                          image:
+                          'assets/images/malpi_international.jpg',
+
+                          title:
+                          'Malpi International',
+
+                          location:
+                          'Bungamati, Lalitpur',
+                        ),
+
+                        SchoolCard(
+                          image:
+                          'assets/images/kathmandu_international_school.jpg',
+
+                          title:
+                          'Kathmandu International',
+
+                          location:
+                          'Kathmandu',
+                        ),
+
+                        SchoolCard(
+                          image:
+                          'assets/images/budhanilkantha.jpg',
+
+                          title:
+                          'Budhanilkantha School',
+
+                          location:
+                          'Kathmandu',
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
