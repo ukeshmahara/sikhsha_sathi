@@ -11,12 +11,15 @@ class AuthEntity extends Equatable {
 
   final String? phoneNumber;
 
+  final String? profilePicture;
+
   const AuthEntity({
     this.userId,
     required this.fullName,
     required this.email,
     required this.password,
     this.phoneNumber,
+    this.profilePicture,
   });
 
   @override
@@ -26,5 +29,6 @@ class AuthEntity extends Equatable {
         email,
         password,
         phoneNumber,
+        profilePicture,
       ];
 }

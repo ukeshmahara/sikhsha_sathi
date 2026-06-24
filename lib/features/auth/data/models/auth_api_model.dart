@@ -1,18 +1,20 @@
-import '../../domain/entities/auth_entity.dart';
+import 'package:sikhsha_sathi/features/auth/domain/entities/auth_entity.dart';
 
 class AuthApiModel {
   final String? id;
   final String fullName;
   final String email;
   final String password;
-  final String phoneNumber;
+  final String? phoneNumber;
+  final String? profilePicture;
 
   AuthApiModel({
     this.id,
     required this.fullName,
     required this.email,
     required this.password,
-    required this.phoneNumber,
+    this.phoneNumber,
+    this.profilePicture,
   });
 
   factory AuthApiModel.fromEntity(
@@ -23,7 +25,8 @@ class AuthApiModel {
       fullName: entity.fullName,
       email: entity.email,
       password: entity.password,
-      phoneNumber: entity.phoneNumber ?? '',
+      phoneNumber: entity.phoneNumber,
+      profilePicture: entity.profilePicture,
     );
   }
 
@@ -34,6 +37,7 @@ class AuthApiModel {
       email: email,
       password: password,
       phoneNumber: phoneNumber,
+      profilePicture: profilePicture,
     );
   }
 
@@ -43,6 +47,7 @@ class AuthApiModel {
       "email": email,
       "password": password,
       "phoneNumber": phoneNumber,
+      "profilePicture": profilePicture,
     };
   }
 
@@ -54,7 +59,8 @@ class AuthApiModel {
       fullName: json["fullName"] ?? "",
       email: json["email"] ?? "",
       password: "",
-      phoneNumber: json["phoneNumber"] ?? "",
+      phoneNumber: json["phoneNumber"],
+      profilePicture: json["profilePicture"],
     );
   }
 }

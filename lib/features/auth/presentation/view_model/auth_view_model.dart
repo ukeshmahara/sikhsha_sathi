@@ -35,6 +35,7 @@ required String fullName,
 required String email,
 required String password,
 required String phoneNumber,
+
 }) async {
 state = state.copyWith(
 status: AuthStatus.loading,

@@ -11,101 +11,103 @@ import '../../models/auth_api_model.dart';
 import '../auth_datasource.dart';
 
 final authRemoteDatasourceProvider =
-Provider<IAuthRemoteDataSource>(
-(ref) => AuthRemoteDatasource(
-apiClient: ref.read(apiClientProvider),
-userSessionService:
-ref.read(userSessionServiceProvider),
-),
+    Provider<IAuthRemoteDataSource>(
+  (ref) => AuthRemoteDatasource(
+    apiClient: ref.read(apiClientProvider),
+    userSessionService:
+        ref.read(userSessionServiceProvider),
+    tokenService:
+        ref.read(tokenServiceProvider),
+  ),
 );
 
 class AuthRemoteDatasource
-implements IAuthRemoteDataSource {
-final ApiClient apiClient;
+    implements IAuthRemoteDataSource {
+  final ApiClient apiClient;
 
-final UserSessionService
-userSessionService;
+  final UserSessionService
+      userSessionService;
 
-AuthRemoteDatasource({
-required this.apiClient,
-required this.userSessionService,
-});
+  final TokenService
+      tokenService;
 
-@override
-Future<AuthApiModel> register(
-AuthApiModel model,
-) async {
-final response =
-await apiClient.post(
-ApiEndpoints.register,
-data: model.toJson(),
-);
+  AuthRemoteDatasource({
+    required this.apiClient,
+    required this.userSessionService,
+    required this.tokenService,
+  });
 
-return AuthApiModel.fromJson(
-  response.data["data"],
-);
+  @override
+  Future<AuthApiModel> register(
+    AuthApiModel model,
+  ) async {
+    final response =
+        await apiClient.post(
+      ApiEndpoints.register,
+      data: model.toJson(),
+    );
 
+    return AuthApiModel.fromJson(
+      response.data["data"],
+    );
+  }
 
-}
+  @override
+  Future<AuthApiModel?> login(
+    String email,
+    String password,
+  ) async {
+    final response =
+        await apiClient.post(
+      ApiEndpoints.login,
+      data: {
+        "email": email,
+        "password": password,
+      },
+    );
 
-@override
-Future<AuthApiModel?> login(
-String email,
-String password,
-) async {
-final response =
-await apiClient.post(
-ApiEndpoints.login,
-data: {
-"email": email,
-"password": password,
-},
-);
+    final token =
+        response.data["data"]
+            ["access_token"];
 
+    if (token != null) {
+      await tokenService.saveToken(
+        token,
+      );
+    }
 
-final token =
-    response.data["token"];
+    final user =
+        AuthApiModel.fromJson(
+      response.data["data"]["user"],
+    );
 
-if (token != null) {
-  await TokenService.saveToken(
-    token,
-  );
-}
+    await userSessionService
+        .saveUserSession(
+      userId: user.id ?? "",
+      email: user.email,
+      fullName: user.fullName,
+      phoneNumber:
+          user.phoneNumber,
+      profilePicture:
+          user.profilePicture,
+    );
 
-final user =
-    AuthApiModel.fromJson(
-  response.data["data"],
-);
+    return user;
+  }
 
-await userSessionService
-    .saveUserSession(
-  userId: user.id ?? "",
-  email: user.email,
-  fullName: user.fullName,
-  phoneNumber:
-      user.phoneNumber,
-);
+  @override
+  Future<AuthApiModel?>
+      getCurrentUser() async {
+    return null;
+  }
 
-return user;
+  @override
+  Future<bool> logout() async {
+    await tokenService.removeToken();
 
+    await userSessionService
+        .clearSession();
 
-}
-
-@override
-Future<AuthApiModel?> getCurrentUser()
-async {
-return null;
-}
-
-@override
-Future<bool> logout() async {
-await TokenService.clearToken();
-
-await userSessionService
-    .clearSession();
-
-return true;
-
-
-}
+    return true;
+  }
 }

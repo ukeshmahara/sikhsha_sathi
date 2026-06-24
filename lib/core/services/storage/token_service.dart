@@ -1,32 +1,50 @@
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'user_session_service.dart';
+
+// Provider
+final tokenServiceProvider =
+    Provider<TokenService>((ref) {
+  final prefs =
+      ref.read(sharedPreferencesProvider);
+
+  return TokenService(
+    prefs: prefs,
+  );
+});
 
 class TokenService {
-  static const _storage =
-      FlutterSecureStorage();
+  final SharedPreferences _prefs;
 
-  static const String tokenKey =
-      "auth_token";
+  static const String _tokenKey =
+      'auth_token';
 
-  static Future<void> saveToken(
+  TokenService({
+    required SharedPreferences prefs,
+  }) : _prefs = prefs;
+
+  // Save Token
+  Future<void> saveToken(
     String token,
   ) async {
-    await _storage.write(
-      key: tokenKey,
-      value: token,
+    await _prefs.setString(
+      _tokenKey,
+      token,
     );
   }
 
-  static Future<String?> getToken()
-  async {
-    return await _storage.read(
-      key: tokenKey,
+  // Get Token
+  String? getToken() {
+    return _prefs.getString(
+      _tokenKey,
     );
   }
 
-  static Future<void> clearToken()
-  async {
-    await _storage.delete(
-      key: tokenKey,
+  // Remove Token
+  Future<void> removeToken() async {
+    await _prefs.remove(
+      _tokenKey,
     );
   }
 }

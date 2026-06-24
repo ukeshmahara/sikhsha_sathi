@@ -1,25 +1,47 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../services/storage/token_service.dart';
 import 'api_endpoints.dart';
 
 final apiClientProvider = Provider<ApiClient>(
-  (ref) => ApiClient(),
+  (ref) => ApiClient(
+    tokenService: ref.read(tokenServiceProvider),
+  ),
 );
 
 class ApiClient {
-  ApiClient({Dio? dio}) : _dio = dio ?? _createDio();
-
   final Dio _dio;
+  final TokenService _tokenService;
 
-  static Dio _createDio() {
-    return Dio(
-      BaseOptions(
-        baseUrl: ApiEndpoints.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        headers: {
-          'Content-Type': 'application/json',
+  ApiClient({
+    required TokenService tokenService,
+    Dio? dio,
+  })  : _tokenService = tokenService,
+        _dio = dio ?? Dio() {
+    _configureDio();
+  }
+
+  void _configureDio() {
+    _dio.options = BaseOptions(
+      baseUrl: ApiEndpoints.baseUrl,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
+
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          final token = _tokenService.getToken();
+
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+
+          handler.next(options);
         },
       ),
     );
@@ -34,5 +56,28 @@ class ApiClient {
     dynamic data,
   }) {
     return _dio.post(path, data: data);
+  }
+
+  Future<Response<dynamic>> put(
+    String path, {
+    dynamic data,
+  }) {
+    return _dio.put(path, data: data);
+  }
+
+  Future<Response<dynamic>> delete(String path) {
+    return _dio.delete(path);
+  }
+
+  Future<Response<dynamic>> uploadFile(
+    String path, {
+    required FormData formData,
+    Options? options,
+  }) {
+    return _dio.put(  // ✅ changed from post to put
+      path,
+      data: formData,
+      options: options,
+    );
   }
 }

@@ -1,8 +1,9 @@
-import 'package:dartz/dartz.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import'package:dartz/dartz.dart';
+import'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sikhsha_sathi/features/auth/data/models/auth_api_model.dart';
 
-import '../../../../core/error/failures.dart';
-import '../../../../core/services/connectivity/network_info.dart';
+import'../../../../core/error/failures.dart';
+import'../../../../core/services/connectivity/network_info.dart';
 
 import '../../domain/entities/auth_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -10,8 +11,6 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_datasource.dart';
 import '../datasources/local/auth_local_datasource.dart';
 import '../datasources/remote/auth_remote_datasource.dart';
-
-import '../models/auth_api_model.dart';
 import '../models/auth_hive_model.dart';
 
 final authRepositoryProvider =
@@ -48,13 +47,15 @@ class AuthRepository
             localDatasource,
         _networkInfo = networkInfo;
 
+  // ================= REGISTER =================
+
   @override
   Future<Either<Failure, bool>>
       register(
     AuthEntity entity,
   ) async {
-    try {
-      if (await _networkInfo.isConnected) {
+    if (await _networkInfo.isConnected) {
+      try {
         final apiModel =
             AuthApiModel.fromEntity(
           entity,
@@ -64,7 +65,15 @@ class AuthRepository
             .register(apiModel);
 
         return const Right(true);
-      } else {
+      } catch (e) {
+        return Left(
+          ApiFailure(
+            message: e.toString(),
+          ),
+        );
+      }
+    } else {
+      try {
         final exists =
             await _localDatasource
                 .isEmailExists(
@@ -81,13 +90,8 @@ class AuthRepository
         }
 
         final hiveModel =
-            AuthHiveModel(
-          userId: entity.userId,
-          fullName: entity.fullName,
-          email: entity.email,
-          password: entity.password,
-          phoneNumber:
-              entity.phoneNumber,
+            AuthHiveModel.fromEntity(
+          entity,
         );
 
         await _localDatasource
@@ -96,15 +100,17 @@ class AuthRepository
         );
 
         return const Right(true);
+      } catch (e) {
+        return Left(
+          LocalDatabaseFailure(
+            message: e.toString(),
+          ),
+        );
       }
-    } catch (e) {
-      return Left(
-        ApiFailure(
-          message: e.toString(),
-        ),
-      );
     }
   }
+
+  // ================= LOGIN =================
 
   @override
   Future<Either<Failure, AuthEntity>>
@@ -112,8 +118,8 @@ class AuthRepository
     String email,
     String password,
   ) async {
-    try {
-      if (await _networkInfo.isConnected) {
+    if (await _networkInfo.isConnected) {
+      try {
         final result =
             await _remoteDatasource
                 .login(
@@ -133,7 +139,15 @@ class AuthRepository
         return Right(
           result.toEntity(),
         );
-      } else {
+      } catch (e) {
+        return Left(
+          ApiFailure(
+            message: e.toString(),
+          ),
+        );
+      }
+    } else {
+      try {
         final result =
             await _localDatasource
                 .login(
@@ -153,15 +167,17 @@ class AuthRepository
         return Right(
           result.toEntity(),
         );
+      } catch (e) {
+        return Left(
+          LocalDatabaseFailure(
+            message: e.toString(),
+          ),
+        );
       }
-    } catch (e) {
-      return Left(
-        ApiFailure(
-          message: e.toString(),
-        ),
-      );
     }
   }
+
+  // ================= GET CURRENT USER =================
 
   @override
   Future<Either<Failure, AuthEntity>>
@@ -192,12 +208,16 @@ class AuthRepository
     }
   }
 
+  // ================= LOGOUT =================
+
   @override
   Future<Either<Failure, bool>>
       logout() async {
     try {
-      await _remoteDatasource
-          .logout();
+      if (await _networkInfo.isConnected) {
+        await _remoteDatasource
+            .logout();
+      }
 
       await _localDatasource
           .logout();
@@ -212,3 +232,4 @@ class AuthRepository
     }
   }
 }
+

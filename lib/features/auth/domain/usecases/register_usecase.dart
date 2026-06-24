@@ -73,6 +73,7 @@ class RegisterUsecase
       email: params.email,
       password: params.password,
       phoneNumber: params.phoneNumber,
+      profilePicture: null,
     );
 
     return _authRepository
