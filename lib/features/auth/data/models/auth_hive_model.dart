@@ -25,15 +25,19 @@ class AuthHiveModel extends HiveObject {
   @HiveField(4)
   final String? phoneNumber;
 
+  @HiveField(5)
+  final String? profilePicture;
+
   AuthHiveModel({
     String? userId,
     required this.fullName,
     required this.email,
     required this.password,
     this.phoneNumber,
+    this.profilePicture,
   }) : userId = userId ?? const Uuid().v4();
 
-  // Entity -> Hive Model
+  // From Entity -> Hive Model
   factory AuthHiveModel.fromEntity(
     AuthEntity entity,
   ) {
@@ -43,10 +47,11 @@ class AuthHiveModel extends HiveObject {
       email: entity.email,
       password: entity.password,
       phoneNumber: entity.phoneNumber,
+      profilePicture: entity.profilePicture
     );
   }
 
-  // Hive Model -> Entity
+  // To Entity -> Hive Model
   AuthEntity toEntity() {
     return AuthEntity(
       userId: userId,
@@ -54,6 +59,7 @@ class AuthHiveModel extends HiveObject {
       email: email,
       password: password,
       phoneNumber: phoneNumber,
+      profilePicture: profilePicture
     );
   }
 

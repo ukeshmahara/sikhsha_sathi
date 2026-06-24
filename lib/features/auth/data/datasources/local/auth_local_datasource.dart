@@ -91,6 +91,8 @@ try {
       fullName: user.fullName,
       phoneNumber:
           user.phoneNumber,
+      profilePicture:
+          user.profilePicture,
     );
   }
 

@@ -38,11 +38,15 @@ class UserSessionService {
   static const String _phoneNumber =
       "phone_number";
 
+  static const String _profilePicture =
+      "profile_picture";
+
   Future<void> saveUserSession({
     required String userId,
     required String email,
     required String fullName,
     String? phoneNumber,
+    String? profilePicture,
   }) async {
     await _prefs.setBool(
       _isLoggedIn,
@@ -70,6 +74,26 @@ class UserSessionService {
         phoneNumber,
       );
     }
+
+    if (profilePicture != null &&
+        profilePicture.isNotEmpty) {
+      await _prefs.setString(
+        _profilePicture,
+        profilePicture,
+      );
+    }
+  }
+
+  // ==========================
+  // NEW METHOD
+  // ==========================
+  Future<void> saveProfilePicture(
+    String profilePicture,
+  ) async {
+    await _prefs.setString(
+      _profilePicture,
+      profilePicture,
+    );
   }
 
   bool isLoggedIn() {
@@ -103,11 +127,41 @@ class UserSessionService {
     );
   }
 
+  String? getProfilePicture() {
+    return _prefs.getString(
+      _profilePicture,
+    );
+  }
+
+  Future<void> clearProfilePicture() async {
+    await _prefs.remove(
+      _profilePicture,
+    );
+  }
+
   Future<void> clearSession() async {
-    await _prefs.remove(_isLoggedIn);
-    await _prefs.remove(_userId);
-    await _prefs.remove(_email);
-    await _prefs.remove(_fullName);
-    await _prefs.remove(_phoneNumber);
+    await _prefs.remove(
+      _isLoggedIn,
+    );
+
+    await _prefs.remove(
+      _userId,
+    );
+
+    await _prefs.remove(
+      _email,
+    );
+
+    await _prefs.remove(
+      _fullName,
+    );
+
+    await _prefs.remove(
+      _phoneNumber,
+    );
+
+    await _prefs.remove(
+      _profilePicture,
+    );
   }
 }
