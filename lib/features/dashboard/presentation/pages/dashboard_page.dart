@@ -8,8 +8,6 @@ import 'home_tab.dart';
 import 'search_tab.dart';
 import 'compare_tab.dart';
 import 'favourite_tab.dart';
-import '../widgets/category_card.dart';
-import '../widgets/school_card.dart';
 
 class DashboardPage
     extends ConsumerWidget {
