@@ -65,6 +65,14 @@ class ApiClient {
     return _dio.put(path, data: data);
   }
 
+  Future<Response<dynamic>> patch(  // ✅ added
+    String path, {
+    dynamic data,
+    Options? options,
+  }) {
+    return _dio.patch(path, data: data, options: options);
+  }
+
   Future<Response<dynamic>> delete(String path) {
     return _dio.delete(path);
   }
@@ -74,7 +82,7 @@ class ApiClient {
     required FormData formData,
     Options? options,
   }) {
-    return _dio.put(  // ✅ changed from post to put
+    return _dio.put(
       path,
       data: formData,
       options: options,
