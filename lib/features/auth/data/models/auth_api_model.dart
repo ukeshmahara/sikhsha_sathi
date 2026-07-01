@@ -46,8 +46,8 @@ class AuthApiModel {
       "fullName": fullName,
       "email": email,
       "password": password,
-      "phoneNumber": phoneNumber,
-      "profilePicture": profilePicture,
+      "phone": phoneNumber,          
+      "profileImage": profilePicture, 
     };
   }
 
@@ -55,12 +55,12 @@ class AuthApiModel {
     Map<String, dynamic> json,
   ) {
     return AuthApiModel(
-      id: json["id"] ?? json["_id"],
+      id: json["_id"] ?? json["id"],
       fullName: json["fullName"] ?? "",
       email: json["email"] ?? "",
       password: "",
-      phoneNumber: json["phoneNumber"],
-      profilePicture: json["profilePicture"],
+      phoneNumber: json["phone"],          
+      profilePicture: json["profileImage"], 
     );
   }
 }
