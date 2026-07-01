@@ -67,8 +67,7 @@ class AuthRemoteDatasource
     );
 
     final token =
-        response.data["data"]
-            ["access_token"];
+        response.data["data"]["token"]; // ✅ fixed: was "access_token"
 
     if (token != null) {
       await tokenService.saveToken(
@@ -96,8 +95,19 @@ class AuthRemoteDatasource
   }
 
   @override
-  Future<AuthApiModel?>
-      getCurrentUser() async {
+  Future<AuthApiModel?> getCurrentUser() async {
+    // ✅ fixed: was returning null, now calls GET /auth/whoami
+    final response =
+        await apiClient.get(
+      ApiEndpoints.whoami,
+    );
+
+    if (response.data["success"] == true) {
+      return AuthApiModel.fromJson(
+        response.data["data"],
+      );
+    }
+
     return null;
   }
 
