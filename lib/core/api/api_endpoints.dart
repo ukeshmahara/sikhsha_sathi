@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const bool isPhysicalDevice = true;
+  static const bool isPhysicalDevice = false;
   static const String compIpAddress = '192.168.18.10';
-  static const int apiPort = 3001;
+  static const int apiPort = 8089; 
 
   static String get baseUrl {
     if (isPhysicalDevice) {
@@ -26,6 +26,7 @@ class ApiEndpoints {
 
   static const String register = '/auth/register';
   static const String login = '/auth/login';
+  static const String whoami = '/auth/whoami'; // ✅ added: for getCurrentUser
   static const String profile = '/auth/profile';
   static const String profilePicture = '/auth/update';
 }
