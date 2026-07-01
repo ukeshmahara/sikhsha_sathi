@@ -34,7 +34,7 @@ class ProfileRemoteDatasource
 
     final formData =
         FormData.fromMap({
-      'profilePicture':
+      'profileImage':                    
           await MultipartFile.fromFile(
         image.path,
         filename: fileName,
@@ -45,9 +45,9 @@ class ProfileRemoteDatasource
         _tokenService.getToken();
 
     final response =
-        await _apiClient.uploadFile(
+        await _apiClient.patch(          
       ApiEndpoints.profilePicture,
-      formData: formData,
+      data: formData,
       options: Options(
         headers: {
           'Authorization':
@@ -57,6 +57,6 @@ class ProfileRemoteDatasource
     );
 
     return response
-        .data['data']['profilePicture'];
+        .data['data']['profileImage'];   
   }
 }
