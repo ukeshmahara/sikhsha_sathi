@@ -65,7 +65,7 @@ class ApiClient {
     return _dio.put(path, data: data);
   }
 
-  Future<Response<dynamic>> patch(  // ✅ added
+  Future<Response<dynamic>> patch(  
     String path, {
     dynamic data,
     Options? options,
