@@ -24,7 +24,14 @@ class ProfileViewModel
       uploadProfilePictureUsecaseProvider,
     );
 
-    return const ProfileState();
+    // load previously saved profile picture (persists across app restarts)
+    final savedProfilePicture = ref
+        .read(userSessionServiceProvider)
+        .getProfilePicture();
+
+    return ProfileState(
+      profilePicture: savedProfilePicture,
+    );
   }
 
   Future<void> uploadProfilePicture(
