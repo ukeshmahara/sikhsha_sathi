@@ -33,4 +33,7 @@ class ApiEndpoints {
   // School endpoints
   static const String schools = '/schools';
   static const String schoolCategoryCounts = '/schools/category-counts';
+
+  // Favourite endpoints
+  static const String favourites = '/favorites';
 }
