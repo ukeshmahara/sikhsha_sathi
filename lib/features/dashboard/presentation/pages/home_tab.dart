@@ -1,402 +1,486 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../widgets/category_card.dart';
-import '../widgets/school_card.dart';
+import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
+import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
+import 'package:sikhsha_sathi/features/school/presentation/state/school_state.dart';
+import 'package:sikhsha_sathi/features/school/presentation/view_model/school_view_model.dart';
+import 'package:sikhsha_sathi/features/school/presentation/widgets/school_card.dart';
 
-class HomeTab extends StatelessWidget {
+const Color _kPrimaryBlue = Color(0xFF185FA5);
 
+class HomeTab extends ConsumerStatefulWidget {
   const HomeTab({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  ConsumerState<HomeTab> createState() => _HomeTabState();
+}
 
-    return SafeArea(
+class _HomeTabState extends ConsumerState<HomeTab> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(schoolViewModelProvider.notifier).loadSchools();
+      ref.read(schoolViewModelProvider.notifier).loadCategoryCounts();
+      ref.read(favouriteViewModelProvider.notifier).loadFavourites();
+    });
+  }
 
-      child: SingleChildScrollView(
+  Widget _buildProfileAvatar(BuildContext context, WidgetRef ref) {
+    final profileState = ref.watch(profileViewModelProvider);
+    final profilePicture = profileState.profilePicture;
 
-        child: Column(
+    String? imageUrl;
+    if (profilePicture != null && profilePicture.isNotEmpty) {
+      final domain = ApiEndpoints.baseUrl.replaceAll('/api/v1', '');
+      imageUrl = '$domain$profilePicture';
+    }
 
-          crossAxisAlignment:
-          CrossAxisAlignment.start,
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        shape: BoxShape.circle,
+        image: imageUrl != null
+            ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+            : null,
+      ),
+      child: imageUrl == null
+          ? const Icon(Icons.person, color: Colors.white, size: 18)
+          : null,
+    );
+  }
 
+  Widget _buildCategoryChip({
+    required IconData icon,
+    required String label,
+    required int count,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? _kPrimaryBlue : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: isSelected ? null : Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-
-            // TOP BLUE SECTION
-            Container(
-
-              padding: const EdgeInsets.all(20),
-
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-
-                borderRadius:
-                BorderRadius.only(
-                  bottomLeft:
-                  Radius.circular(25),
-
-                  bottomRight:
-                  Radius.circular(25),
-                ),
-              ),
-
-              child: const Row(
-
-                mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
-
-                children: [
-
-                  Column(
-
-                    crossAxisAlignment:
-                    CrossAxisAlignment.start,
-
-                    children: [
-
-                      Text(
-                        'Hello, Ukesh',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 28,
-                          fontWeight:
-                          FontWeight.bold,
-                        ),
-                      ),
-
-                      SizedBox(height: 8),
-
-                      Text(
-                        'Find the best school for you',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  Icon(
-                    Icons.notifications_none,
-                    color: Colors.white,
-                    size: 30,
-                  ),
-                ],
+            Icon(
+              icon,
+              size: 14,
+              color: isSelected ? Colors.white : Colors.grey.shade700,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: isSelected ? Colors.white : Colors.black87,
               ),
             ),
-
-            Padding(
-
-              padding: const EdgeInsets.all(16),
-
-              child: Column(
-
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-
-                children: [
-
-                  // SEARCH
-                  Row(
-
-                    children: [
-
-                      Expanded(
-
-                        child: TextField(
-
-                          decoration: InputDecoration(
-
-                            hintText:
-                            'Search school, keyword',
-
-                            prefixIcon:
-                            const Icon(Icons.search),
-
-                            filled: true,
-
-                            fillColor:
-                            Colors.grey.shade100,
-
-                            border:
-                            OutlineInputBorder(
-                              borderRadius:
-                              BorderRadius.circular(15),
-                              borderSide:
-                              BorderSide.none,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      Container(
-
-                        padding:
-                        const EdgeInsets.all(15),
-
-                        decoration: BoxDecoration(
-                          borderRadius:
-                          BorderRadius.circular(15),
-
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                          ),
-                        ),
-
-                        child: const Icon(
-                          Icons.tune,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // LOCATION
-                  const Row(
-
-                    children: [
-
-                      Icon(
-                        Icons.location_on,
-                        color: Colors.blue,
-                      ),
-
-                      SizedBox(width: 10),
-
-                      Text(
-                        'Kathmandu, Nepal',
-                        style: TextStyle(
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 25),
-
-                  // CATEGORY
-                  Container(
-
-                    padding: const EdgeInsets.all(15),
-
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-
-                      borderRadius:
-                      BorderRadius.circular(20),
-
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.shade200,
-                          blurRadius: 5,
-                        ),
-                      ],
-                    ),
-
-                    child: const Row(
-
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceAround,
-
-                      children: [
-
-                        CategoryCard(
-                          image:
-                          'assets/images/international_school.png',
-
-                          title:
-                          'International Schools',
-
-                          color:
-                          Colors.blue,
-                        ),
-
-                        CategoryCard(
-                          image:
-                          'assets/images/public_school.png',
-
-                          title:
-                          'Public Schools',
-
-                          color:
-                          Colors.green,
-                        ),
-
-                        CategoryCard(
-                          image:
-                          'assets/images/budget_friendly.png',
-
-                          title:
-                          'Budget Friendly',
-
-                          color:
-                          Colors.purple,
-                        ),
-
-                        CategoryCard(
-                          image:
-                          'assets/images/top_rated.png',
-
-                          title:
-                          'Top Rated',
-
-                          color:
-                          Colors.orange,
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // RECOMMENDED
-                  const Row(
-
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
-
-                    children: [
-
-                      Text(
-                        'Recommended for You',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight:
-                          FontWeight.bold,
-                        ),
-                      ),
-
-                      Text(
-                        'See All',
-                        style: TextStyle(
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  SizedBox(
-
-                    height: 230,
-
-                    child: ListView(
-
-                      scrollDirection:
-                      Axis.horizontal,
-
-                      children: const [
-
-                        SchoolCard(
-                          image:
-                          'assets/images/lincoln_school.jpg',
-
-                          title:
-                          'Lincoln School',
-
-                          location:
-                          'Pulchowk, Kathmandu',
-                        ),
-
-                        SchoolCard(
-                          image:
-                          'assets/images/british_school.jpg',
-
-                          title:
-                          'The British School',
-
-                          location:
-                          'Kathmandu',
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // POPULAR
-                  const Row(
-
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
-
-                    children: [
-
-                      Text(
-                        'Popular Schools',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight:
-                          FontWeight.bold,
-                        ),
-                      ),
-
-                      Text(
-                        'See All',
-                        style: TextStyle(
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  SizedBox(
-
-                    height: 230,
-
-                    child: ListView(
-
-                      scrollDirection:
-                      Axis.horizontal,
-
-                      children: const [
-
-                        SchoolCard(
-                          image:
-                          'assets/images/malpi_international.jpg',
-
-                          title:
-                          'Malpi International',
-
-                          location:
-                          'Bungamati, Lalitpur',
-                        ),
-
-                        SchoolCard(
-                          image:
-                          'assets/images/kathmandu_international_school.jpg',
-
-                          title:
-                          'Kathmandu International',
-
-                          location:
-                          'Kathmandu',
-                        ),
-
-                        SchoolCard(
-                          image:
-                          'assets/images/budhanilkantha.jpg',
-
-                          title:
-                          'Budhanilkantha School',
-
-                          location:
-                          'Kathmandu',
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            const SizedBox(width: 4),
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: 10,
+                color: isSelected
+                    ? Colors.white.withValues(alpha: 0.8)
+                    : Colors.grey.shade500,
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildAiBanner({
+    required Color bg,
+    required Color iconBg,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color textColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  subtitle,
+                  style: TextStyle(fontSize: 10, color: textColor),
+                ),
+              ],
+            ),
+          ),
+          Icon(Icons.chevron_right, size: 18, color: textColor),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final schoolState = ref.watch(schoolViewModelProvider);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FA),
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await ref
+                .read(schoolViewModelProvider.notifier)
+                .loadSchools(reset: true);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // BLUE HEADER
+                Container(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 44),
+                  decoration: const BoxDecoration(
+                    color: _kPrimaryBlue,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Good morning',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Ukesh',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      _buildProfileAvatar(context, ref),
+                    ],
+                  ),
+                ),
+
+                // FLOATING CONTENT — overlaps the header
+                Transform.translate(
+                  offset: const Offset(0, -30),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // FLOATING SEARCH BAR
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  onSubmitted: (value) {
+                                    ref
+                                        .read(schoolViewModelProvider.notifier)
+                                        .search(value);
+                                  },
+                                  decoration: InputDecoration(
+                                    hintText: 'Search school, keyword',
+                                    hintStyle: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                    prefixIcon: Icon(
+                                      Icons.search,
+                                      size: 20,
+                                      color: Colors.grey.shade500,
+                                    ),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding:
+                                        const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE6F1FB),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.tune,
+                                  size: 18,
+                                  color: _kPrimaryBlue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // LOCATION
+                        Row(
+                          children: const [
+                            Icon(
+                              Icons.location_on,
+                              size: 16,
+                              color: _kPrimaryBlue,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Kathmandu, Nepal',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        // CATEGORY CHIPS — scrollable, no "All" chip
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _buildCategoryChip(
+                                icon: Icons.public,
+                                label: 'International',
+                                count: schoolState
+                                        .categoryCounts['international'] ??
+                                    0,
+                                isSelected: schoolState.selectedCategory ==
+                                    'international',
+                                onTap: () => ref
+                                    .read(schoolViewModelProvider.notifier)
+                                    .selectCategory('international'),
+                              ),
+                              _buildCategoryChip(
+                                icon: Icons.account_balance,
+                                label: 'Public',
+                                count:
+                                    schoolState.categoryCounts['public'] ?? 0,
+                                isSelected:
+                                    schoolState.selectedCategory == 'public',
+                                onTap: () => ref
+                                    .read(schoolViewModelProvider.notifier)
+                                    .selectCategory('public'),
+                              ),
+                              _buildCategoryChip(
+                                icon: Icons.business,
+                                label: 'Private',
+                                count:
+                                    schoolState.categoryCounts['private'] ?? 0,
+                                isSelected:
+                                    schoolState.selectedCategory == 'private',
+                                onTap: () => ref
+                                    .read(schoolViewModelProvider.notifier)
+                                    .selectCategory('private'),
+                              ),
+                              _buildCategoryChip(
+                                icon: Icons.monetization_on,
+                                label: 'Budget friendly',
+                                count: schoolState
+                                        .categoryCounts['budget_friendly'] ??
+                                    0,
+                                isSelected: schoolState.selectedCategory ==
+                                    'budget_friendly',
+                                onTap: () => ref
+                                    .read(schoolViewModelProvider.notifier)
+                                    .selectCategory('budget_friendly'),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // AI RECOMMENDATION BANNER
+                        _buildAiBanner(
+                          bg: const Color(0xFFEEEDFE),
+                          iconBg: const Color(0xFF7F77DD),
+                          icon: Icons.auto_awesome,
+                          title: 'AI school recommendation',
+                          subtitle: 'Get suggestions based on your needs',
+                          textColor: const Color(0xFF3C3489),
+                        ),
+
+                        // AI CHATBOT BANNER
+                        _buildAiBanner(
+                          bg: const Color(0xFFE6F1FB),
+                          iconBg: const Color(0xFF378ADD),
+                          icon: Icons.chat_bubble_outline,
+                          title: 'AI school assistant',
+                          subtitle: 'Ask anything about schools',
+                          textColor: const Color(0xFF0C447C),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // SCHOOL LIST HEADER
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              schoolState.selectedCategory.isEmpty
+                                  ? 'All schools'
+                                  : 'Filtered schools',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (schoolState.selectedCategory.isNotEmpty)
+                              TextButton(
+                                onPressed: () => ref
+                                    .read(schoolViewModelProvider.notifier)
+                                    .selectCategory(
+                                      schoolState.selectedCategory,
+                                    ),
+                                child: const Text(
+                                  'Clear filter',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: _kPrimaryBlue,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // SCHOOL LIST — full-width vertical cards
+                        _buildSchoolList(schoolState),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSchoolList(SchoolState schoolState) {
+    if (schoolState.status == SchoolStatus.loading &&
+        schoolState.schools.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (schoolState.status == SchoolStatus.error &&
+        schoolState.schools.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Column(
+          children: [
+            Text(
+              schoolState.errorMessage ?? 'Something went wrong',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => ref
+                  .read(schoolViewModelProvider.notifier)
+                  .loadSchools(reset: true),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (schoolState.schools.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: Text('No schools found')),
+      );
+    }
+
+    return Column(
+      children: schoolState.schools.map((school) {
+        return SchoolCard(
+          school: school,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SchoolDetailPage(school: school),
+              ),
+            );
+          },
+        );
+      }).toList(),
     );
   }
 }

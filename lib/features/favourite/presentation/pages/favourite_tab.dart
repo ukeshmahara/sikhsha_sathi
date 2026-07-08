@@ -1,0 +1,389 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/features/favourite/presentation/state/favourite_state.dart';
+import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
+
+class FavouriteTab extends ConsumerStatefulWidget {
+  const FavouriteTab({super.key});
+
+  @override
+  ConsumerState<FavouriteTab> createState() => _FavouriteTabState();
+}
+
+class _FavouriteTabState extends ConsumerState<FavouriteTab> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(favouriteViewModelProvider.notifier).loadFavourites();
+    });
+  }
+
+  String? _imageUrl(String? image) {
+    if (image == null || image.isEmpty) return null;
+    final domain = ApiEndpoints.baseUrl.replaceAll('/api/v1', '');
+    return '$domain$image';
+  }
+
+  // Category badge colors, matching the Home tab category chips
+  Map<String, Color> _categoryColors(String category) {
+    switch (category) {
+      case 'international':
+        return {'bg': const Color(0xFFEEEDFE), 'text': const Color(0xFF3C3489)};
+      case 'public':
+        return {'bg': const Color(0xFFEAF3DE), 'text': const Color(0xFF27500A)};
+      case 'private':
+        return {'bg': const Color(0xFFE6F1FB), 'text': const Color(0xFF0C447C)};
+      default:
+        return {'bg': Colors.grey.shade100, 'text': Colors.grey.shade700};
+    }
+  }
+
+  String _categoryLabel(String category) {
+    switch (category) {
+      case 'international':
+        return 'International';
+      case 'public':
+        return 'Public';
+      case 'private':
+        return 'Private';
+      default:
+        return category;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final favouriteState = ref.watch(favouriteViewModelProvider);
+    final count = favouriteState.favourites.length;
+
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Favourites',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFDEBEC),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.favorite,
+                            size: 13,
+                            color: Color(0xFFA32D2D),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            '$count',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFFA32D2D),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Schools you\'ve saved for quick access',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref
+                    .read(favouriteViewModelProvider.notifier)
+                    .loadFavourites();
+              },
+              child: _buildBody(favouriteState),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(FavouriteState favouriteState) {
+    if (favouriteState.status == FavouriteStatus.loading &&
+        favouriteState.favourites.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (favouriteState.status == FavouriteStatus.error &&
+        favouriteState.favourites.isEmpty) {
+      return ListView(
+        children: [
+          const SizedBox(height: 100),
+          Center(
+            child: Text(
+              favouriteState.errorMessage ?? 'Something went wrong',
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: ElevatedButton(
+              onPressed: () => ref
+                  .read(favouriteViewModelProvider.notifier)
+                  .loadFavourites(),
+              child: const Text('Retry'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (favouriteState.favourites.isEmpty) {
+      return ListView(
+        children: [
+          const SizedBox(height: 60),
+          Center(
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.favorite_border,
+                size: 32,
+                color: Colors.grey.shade400,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Center(
+            child: Text(
+              'No favourites yet',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                'Tap the heart icon on any school to save it here for quick access',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(14),
+      itemCount: favouriteState.favourites.length,
+      itemBuilder: (context, index) {
+        final favourite = favouriteState.favourites[index];
+        final school = favourite.school;
+        final imageUrl = _imageUrl(school.image);
+        final categoryColors = _categoryColors(school.category);
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SchoolDetailPage(school: school),
+                ),
+              );
+            },
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: imageUrl != null
+                      ? Image.network(
+                          imageUrl,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _thumbnailPlaceholder(),
+                        )
+                      : _thumbnailPlaceholder(),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        school.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: Text(
+                              school.location,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: categoryColors['bg'],
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              _categoryLabel(school.category),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: categoryColors['text'],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              'Rs ${school.fees.toStringAsFixed(0)}/yr',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF185FA5),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: school.id == null
+                      ? null
+                      : () async {
+                          final success = await ref
+                              .read(favouriteViewModelProvider.notifier)
+                              .toggleFavourite(school);
+
+                          if (!success && context.mounted) {
+                            final errorMessage = ref
+                                .read(favouriteViewModelProvider)
+                                .errorMessage;
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  errorMessage ??
+                                      'Could not remove favourite',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFDEBEC),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.favorite,
+                      size: 15,
+                      color: Color(0xFFA32D2D),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _thumbnailPlaceholder() {
+    return Container(
+      width: 60,
+      height: 60,
+      color: Colors.grey.shade200,
+      child: Icon(Icons.school, size: 24, color: Colors.grey.shade400),
+    );
+  }
+}

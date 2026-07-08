@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
@@ -217,6 +218,12 @@ class _ProfileTabState
     final savedProfilePicture =
         session.getProfilePicture();
 
+    // backend returns "/uploads/<filename>" — prepend domain to make a valid URL
+    final savedProfilePictureUrl = savedProfilePicture != null &&
+            savedProfilePicture.isNotEmpty
+        ? '${ApiEndpoints.baseUrl.replaceAll('/api/v1', '')}$savedProfilePicture'
+        : null;
+
     final profileState =
         ref.watch(profileViewModelProvider);
 
@@ -278,14 +285,14 @@ class _ProfileTabState
                             ? FileImage(
                                 _selectedImage!,
                               )
-                            : savedProfilePicture != null
+                            : savedProfilePictureUrl != null
                                 ? NetworkImage(
-                                    savedProfilePicture,
+                                    savedProfilePictureUrl,
                                   )
                                 : null,
                     child:
                         _selectedImage == null &&
-                                savedProfilePicture == null
+                                savedProfilePictureUrl == null
                             ? const Icon(
                                 Icons.person,
                                 size: 80,

@@ -7,7 +7,7 @@ import '../providers/bottom_nav_provider.dart';
 import 'home_tab.dart';
 import 'search_tab.dart';
 import 'compare_tab.dart';
-import 'favourite_tab.dart';
+import 'package:sikhsha_sathi/features/favourite/presentation/pages/favourite_tab.dart';
 
 class DashboardPage
     extends ConsumerWidget {
