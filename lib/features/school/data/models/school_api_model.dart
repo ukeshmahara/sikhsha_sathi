@@ -8,6 +8,11 @@ class SchoolApiModel {
   final List<String> streamsOffered;
   final double fees;
   final String? image;
+  final String? description;
+  final List<String> facilities;
+  final String? contactPhone;
+  final String? contactEmail;
+  final String? contactWebsite;
 
   SchoolApiModel({
     this.id,
@@ -17,6 +22,11 @@ class SchoolApiModel {
     required this.streamsOffered,
     required this.fees,
     this.image,
+    this.description,
+    this.facilities = const [],
+    this.contactPhone,
+    this.contactEmail,
+    this.contactWebsite,
   });
 
   factory SchoolApiModel.fromEntity(SchoolEntity entity) {
@@ -28,6 +38,11 @@ class SchoolApiModel {
       streamsOffered: entity.streamsOffered,
       fees: entity.fees,
       image: entity.image,
+      description: entity.description,
+      facilities: entity.facilities,
+      contactPhone: entity.contactPhone,
+      contactEmail: entity.contactEmail,
+      contactWebsite: entity.contactWebsite,
     );
   }
 
@@ -40,6 +55,11 @@ class SchoolApiModel {
       streamsOffered: streamsOffered,
       fees: fees,
       image: image,
+      description: description,
+      facilities: facilities,
+      contactPhone: contactPhone,
+      contactEmail: contactEmail,
+      contactWebsite: contactWebsite,
     );
   }
 
@@ -50,6 +70,11 @@ class SchoolApiModel {
       "category": category,
       "streamsOffered": streamsOffered,
       "fees": fees,
+      "description": description,
+      "facilities": facilities,
+      "contactPhone": contactPhone,
+      "contactEmail": contactEmail,
+      "contactWebsite": contactWebsite,
     };
   }
 
@@ -64,6 +89,13 @@ class SchoolApiModel {
           : <String>[],
       fees: (json["fees"] ?? 0).toDouble(),
       image: json["image"],
+      description: json["description"],
+      facilities: json["facilities"] != null
+          ? List<String>.from(json["facilities"])
+          : <String>[],
+      contactPhone: json["contactPhone"],
+      contactEmail: json["contactEmail"],
+      contactWebsite: json["contactWebsite"],
     );
   }
 }
