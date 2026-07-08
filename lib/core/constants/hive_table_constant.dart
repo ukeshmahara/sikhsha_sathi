@@ -12,4 +12,11 @@ class HiveTableConstant {
 
   static const String authTable =
       "auth_table";
+
+  // FAVOURITE TABLE
+
+  static const int favouriteTypeId = 1;
+
+  static const String favouriteTable =
+      "favourite_table";
 }

@@ -1,10 +1,10 @@
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:sikhsha_sathi/core/constants/hive_table_constant.dart';
 import 'package:sikhsha_sathi/features/auth/data/models/auth_hive_model.dart';
+import 'package:sikhsha_sathi/features/favourite/data/models/favourite_hive_model.dart';
 
 
 final hiveServiceProvider = Provider<HiveService>((ref) {
@@ -42,6 +42,15 @@ class HiveService {
         AuthHiveModelAdapter(),
       );
     }
+
+    if (!Hive.isAdapterRegistered(
+      HiveTableConstant.favouriteTypeId,
+    )) {
+
+      Hive.registerAdapter(
+        FavouriteHiveModelAdapter(),
+      );
+    }
   }
 
   // ================= OPEN BOXES =================
@@ -50,6 +59,10 @@ class HiveService {
 
     await Hive.openBox<AuthHiveModel>(
       HiveTableConstant.authTable,
+    );
+
+    await Hive.openBox<FavouriteHiveModel>(
+      HiveTableConstant.favouriteTable,
     );
   }
 
@@ -130,5 +143,56 @@ class HiveService {
   Future<void> logoutUser() async {
 
     // later use shared preferences / token remove
+  }
+
+  // ===================================================
+  // FAVOURITE QUERIES
+  // ===================================================
+
+  Box<FavouriteHiveModel> get _favouriteBox =>
+      Hive.box<FavouriteHiveModel>(
+        HiveTableConstant.favouriteTable,
+      );
+
+  // ================= GET ALL CACHED FAVOURITES =================
+
+  List<FavouriteHiveModel> getCachedFavourites() {
+    return _favouriteBox.values.toList();
+  }
+
+  // ================= REPLACE CACHE WITH FRESH DATA =================
+
+  Future<void> replaceCachedFavourites(
+    List<FavouriteHiveModel> models,
+  ) async {
+    await _favouriteBox.clear();
+
+    for (final model in models) {
+      await _favouriteBox.put(model.schoolId, model);
+    }
+  }
+
+  // ================= CACHE SINGLE FAVOURITE =================
+
+  Future<void> cacheFavourite(
+    FavouriteHiveModel model,
+  ) async {
+    await _favouriteBox.put(model.schoolId, model);
+  }
+
+  // ================= REMOVE CACHED FAVOURITE =================
+
+  Future<void> removeCachedFavourite(
+    String schoolId,
+  ) async {
+    await _favouriteBox.delete(schoolId);
+  }
+
+  // ================= CHECK IF FAVOURITED =================
+
+  bool isFavouriteCached(
+    String schoolId,
+  ) {
+    return _favouriteBox.containsKey(schoolId);
   }
 }
