@@ -5,9 +5,11 @@ import 'package:sikhsha_sathi/features/profile/presentation/pages/profile_tab.da
 import '../providers/bottom_nav_provider.dart';
 
 import 'home_tab.dart';
-import 'search_tab.dart';
-import 'compare_tab.dart';
+import 'package:sikhsha_sathi/features/search/presentation/pages/search_tab.dart';
+import 'package:sikhsha_sathi/features/compare/presentation/pages/compare_tab.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/pages/favourite_tab.dart';
+import '../widgets/category_card.dart';
+import 'package:sikhsha_sathi/features/school/presentation/widgets/school_card.dart';
 
 class DashboardPage
     extends ConsumerWidget {
