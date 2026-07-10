@@ -61,8 +61,24 @@ class AuthRepository
           entity,
         );
 
-        await _remoteDatasource
-            .register(apiModel);
+        final registeredModel =
+            await _remoteDatasource
+                .register(apiModel);
+
+        try {
+          await _localDatasource.register(
+            AuthHiveModel(
+              userId: registeredModel.id,
+              fullName: registeredModel.fullName,
+              email: registeredModel.email,
+              password: entity.password,
+              phoneNumber: registeredModel.phoneNumber,
+              profilePicture: registeredModel.profilePicture,
+            ),
+          );
+        } catch (_) {
+          // caching failure should never block a successful register
+        }
 
         return const Right(true);
       } catch (e) {
@@ -134,6 +150,25 @@ class AuthRepository
                   "Invalid credentials",
             ),
           );
+        }
+
+        // Cache locally too, so login still works later if the user
+        // goes offline. The API response's password field is always
+        // empty (the backend never sends it back), so we use the
+        // plaintext password just entered instead of result.password.
+        try {
+          await _localDatasource.register(
+            AuthHiveModel(
+              userId: result.id,
+              fullName: result.fullName,
+              email: result.email,
+              password: password,
+              phoneNumber: result.phoneNumber,
+              profilePicture: result.profilePicture,
+            ),
+          );
+        } catch (_) {
+          // caching failure should never block a successful login
         }
 
         return Right(
@@ -232,4 +267,3 @@ class AuthRepository
     }
   }
 }
-
