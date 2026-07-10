@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
 import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
@@ -186,20 +187,21 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Column(
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             'Good morning',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
                             ),
                           ),
-                          SizedBox(height: 2),
+                          const SizedBox(height: 2),
                           Text(
-                            'Ukesh',
-                            style: TextStyle(
+                            ref.read(userSessionServiceProvider).getFullName() ??
+                                'there',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -304,57 +306,65 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                         const SizedBox(height: 14),
 
                         // CATEGORY CHIPS — scrollable, no "All" chip
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildCategoryChip(
-                                icon: Icons.public,
-                                label: 'International',
-                                count: schoolState
-                                        .categoryCounts['international'] ??
-                                    0,
-                                isSelected: schoolState.selectedCategory ==
-                                    'international',
-                                onTap: () => ref
-                                    .read(schoolViewModelProvider.notifier)
-                                    .selectCategory('international'),
-                              ),
-                              _buildCategoryChip(
-                                icon: Icons.account_balance,
-                                label: 'Public',
-                                count:
-                                    schoolState.categoryCounts['public'] ?? 0,
-                                isSelected:
-                                    schoolState.selectedCategory == 'public',
-                                onTap: () => ref
-                                    .read(schoolViewModelProvider.notifier)
-                                    .selectCategory('public'),
-                              ),
-                              _buildCategoryChip(
-                                icon: Icons.business,
-                                label: 'Private',
-                                count:
-                                    schoolState.categoryCounts['private'] ?? 0,
-                                isSelected:
-                                    schoolState.selectedCategory == 'private',
-                                onTap: () => ref
-                                    .read(schoolViewModelProvider.notifier)
-                                    .selectCategory('private'),
-                              ),
-                              _buildCategoryChip(
-                                icon: Icons.monetization_on,
-                                label: 'Budget friendly',
-                                count: schoolState
-                                        .categoryCounts['budget_friendly'] ??
-                                    0,
-                                isSelected: schoolState.selectedCategory ==
-                                    'budget_friendly',
-                                onTap: () => ref
-                                    .read(schoolViewModelProvider.notifier)
-                                    .selectCategory('budget_friendly'),
-                              ),
-                            ],
+                        Scrollbar(
+                          thumbVisibility: true,
+                          trackVisibility: true,
+                          thickness: 3,
+                          radius: const Radius.circular(10),
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              children: [
+                                _buildCategoryChip(
+                                  icon: Icons.public,
+                                  label: 'International',
+                                  count: schoolState.categoryCounts[
+                                          'international'] ??
+                                      0,
+                                  isSelected: schoolState.selectedCategory ==
+                                      'international',
+                                  onTap: () => ref
+                                      .read(schoolViewModelProvider.notifier)
+                                      .selectCategory('international'),
+                                ),
+                                _buildCategoryChip(
+                                  icon: Icons.account_balance,
+                                  label: 'Public',
+                                  count: schoolState.categoryCounts['public'] ??
+                                      0,
+                                  isSelected:
+                                      schoolState.selectedCategory == 'public',
+                                  onTap: () => ref
+                                      .read(schoolViewModelProvider.notifier)
+                                      .selectCategory('public'),
+                                ),
+                                _buildCategoryChip(
+                                  icon: Icons.business,
+                                  label: 'Private',
+                                  count:
+                                      schoolState.categoryCounts['private'] ??
+                                          0,
+                                  isSelected: schoolState.selectedCategory ==
+                                      'private',
+                                  onTap: () => ref
+                                      .read(schoolViewModelProvider.notifier)
+                                      .selectCategory('private'),
+                                ),
+                                _buildCategoryChip(
+                                  icon: Icons.monetization_on,
+                                  label: 'Budget friendly',
+                                  count: schoolState.categoryCounts[
+                                          'budget_friendly'] ??
+                                      0,
+                                  isSelected: schoolState.selectedCategory ==
+                                      'budget_friendly',
+                                  onTap: () => ref
+                                      .read(schoolViewModelProvider.notifier)
+                                      .selectCategory('budget_friendly'),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
 
@@ -406,6 +416,20 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                   'Clear filter',
                                   style: TextStyle(
                                     fontSize: 12,
+                                    color: _kPrimaryBlue,
+                                  ),
+                                ),
+                              )
+                            else
+                              GestureDetector(
+                                onTap: () {
+                                  // TODO: navigate to Search tab with full list once built
+                                },
+                                child: const Text(
+                                  'See all',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
                                     color: _kPrimaryBlue,
                                   ),
                                 ),
