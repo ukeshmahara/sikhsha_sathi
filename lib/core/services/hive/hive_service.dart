@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sikhsha_sathi/core/constants/hive_table_constant.dart';
 import 'package:sikhsha_sathi/features/auth/data/models/auth_hive_model.dart';
 import 'package:sikhsha_sathi/features/favourite/data/models/favourite_hive_model.dart';
+import 'package:sikhsha_sathi/features/notification/data/models/notification_hive_model.dart';
 
 
 final hiveServiceProvider = Provider<HiveService>((ref) {
@@ -51,6 +52,15 @@ class HiveService {
         FavouriteHiveModelAdapter(),
       );
     }
+
+    if (!Hive.isAdapterRegistered(
+      HiveTableConstant.notificationTypeId,
+    )) {
+
+      Hive.registerAdapter(
+        NotificationHiveModelAdapter(),
+      );
+    }
   }
 
   // ================= OPEN BOXES =================
@@ -63,6 +73,10 @@ class HiveService {
 
     await Hive.openBox<FavouriteHiveModel>(
       HiveTableConstant.favouriteTable,
+    );
+
+    await Hive.openBox<NotificationHiveModel>(
+      HiveTableConstant.notificationTable,
     );
   }
 
@@ -194,5 +208,32 @@ class HiveService {
     String schoolId,
   ) {
     return _favouriteBox.containsKey(schoolId);
+  }
+
+  // ===================================================
+  // NOTIFICATION QUERIES
+  // ===================================================
+
+  Box<NotificationHiveModel> get _notificationBox =>
+      Hive.box<NotificationHiveModel>(
+        HiveTableConstant.notificationTable,
+      );
+
+  // ================= GET ALL CACHED NOTIFICATIONS =================
+
+  List<NotificationHiveModel> getCachedNotifications() {
+    return _notificationBox.values.toList();
+  }
+
+  // ================= REPLACE CACHE WITH FRESH DATA =================
+
+  Future<void> replaceCachedNotifications(
+    List<NotificationHiveModel> models,
+  ) async {
+    await _notificationBox.clear();
+
+    for (final model in models) {
+      await _notificationBox.put(model.id, model);
+    }
   }
 }

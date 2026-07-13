@@ -22,4 +22,9 @@ abstract interface class IAuthRepository {
 
   Future<Either<Failure, bool>>
       logout();
+
+  Future<Either<Failure, bool>>
+      forgotPassword(
+    String email,
+  );
 }

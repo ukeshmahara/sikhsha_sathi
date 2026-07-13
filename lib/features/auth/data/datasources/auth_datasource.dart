@@ -33,4 +33,8 @@ abstract interface class IAuthRemoteDataSource {
   Future<AuthApiModel?> getCurrentUser();
 
   Future<bool> logout();
+
+  Future<void> forgotPassword(
+    String email,
+  );
 }

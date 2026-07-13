@@ -27,6 +27,7 @@ class ApiEndpoints {
   static const String register = '/auth/register';
   static const String login = '/auth/login';
   static const String whoami = '/auth/whoami';
+  static const String forgotPassword = '/auth/forgot-password';
   static const String profile = '/auth/profile';
   static const String profilePicture = '/auth/update';
 
@@ -36,4 +37,7 @@ class ApiEndpoints {
 
   // Favourite endpoints
   static const String favourites = '/favorites';
+
+  // Notification endpoints
+  static const String notifications = '/notifications';
 }
