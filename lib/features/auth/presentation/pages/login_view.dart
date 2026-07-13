@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sikhsha_sathi/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'forgot_password_page.dart';
 import 'signup_view.dart';
 
 import '../state/auth_state.dart';
@@ -288,7 +289,14 @@ class _LoginViewState
 
                   child: TextButton(
 
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ForgotPasswordPage(),
+                        ),
+                      );
+                    },
 
                     child: const Text(
                       "Forgot Password ?",
