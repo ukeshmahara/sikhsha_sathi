@@ -65,6 +65,11 @@ class AuthRepository
             await _remoteDatasource
                 .register(apiModel);
 
+        // Cache locally too, so login still works later if the user
+        // goes offline without ever logging in again after this register.
+        // The API response's password field is always empty (the backend
+        // never sends it back), so we use the plaintext password the user
+        // just typed in (entity.password) instead of registeredModel.password.
         try {
           await _localDatasource.register(
             AuthHiveModel(
@@ -257,6 +262,35 @@ class AuthRepository
       await _localDatasource
           .logout();
 
+      return const Right(true);
+    } catch (e) {
+      return Left(
+        ApiFailure(
+          message: e.toString(),
+        ),
+      );
+    }
+  }
+
+  // ================= FORGOT PASSWORD =================
+  // Always requires a live connection — there's no meaningful offline
+  // version of "email me a reset link".
+
+  @override
+  Future<Either<Failure, bool>> forgotPassword(
+    String email,
+  ) async {
+    if (!await _networkInfo.isConnected) {
+      return const Left(
+        ApiFailure(
+          message:
+              "No internet connection. Connect to request a password reset.",
+        ),
+      );
+    }
+
+    try {
+      await _remoteDatasource.forgotPassword(email);
       return const Right(true);
     } catch (e) {
       return Left(
