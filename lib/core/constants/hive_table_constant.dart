@@ -19,4 +19,11 @@ class HiveTableConstant {
 
   static const String favouriteTable =
       "favourite_table";
+
+  // NOTIFICATION TABLE
+
+  static const int notificationTypeId = 2;
+
+  static const String notificationTable =
+      "notification_table";
 }
