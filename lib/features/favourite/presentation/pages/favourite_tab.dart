@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/state/favourite_state.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
@@ -55,6 +56,23 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
     }
   }
 
+  // Formats 1500000 -> "1,500,000" without needing the intl package
+  String _formatFees(double fees) {
+    final wholeNumber = fees.toStringAsFixed(0);
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < wholeNumber.length; i++) {
+      final positionFromEnd = wholeNumber.length - i;
+      buffer.write(wholeNumber[i]);
+
+      if (positionFromEnd > 1 && positionFromEnd % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+
+    return buffer.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final favouriteState = ref.watch(favouriteViewModelProvider);
@@ -67,9 +85,9 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
           Container(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.appSurface,
               border: Border(
-                bottom: BorderSide(color: Colors.grey.shade200),
+                bottom: BorderSide(color: context.appBorder),
               ),
             ),
             child: Column(
@@ -78,12 +96,12 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'Favourites',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: context.appTextPrimary,
                       ),
                     ),
                     Container(
@@ -120,7 +138,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                   'Schools you\'ve saved for quick access',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey.shade600,
+                    color: context.appTextSecondary,
                   ),
                 ),
               ],
@@ -180,23 +198,24 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: context.appSurfaceMuted,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.favorite_border,
                 size: 32,
-                color: Colors.grey.shade400,
+                color: context.appTextSecondary,
               ),
             ),
           ),
           const SizedBox(height: 16),
-          const Center(
+          Center(
             child: Text(
               'No favourites yet',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
+                color: context.appTextPrimary,
               ),
             ),
           ),
@@ -209,7 +228,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color: Colors.grey.shade500,
+                  color: context.appTextSecondary,
                 ),
               ),
             ),
@@ -231,9 +250,9 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: context.appBorder),
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(14),
@@ -280,7 +299,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                           Icon(
                             Icons.location_on,
                             size: 11,
-                            color: Colors.grey.shade500,
+                            color: context.appTextSecondary,
                           ),
                           const SizedBox(width: 2),
                           Expanded(
@@ -290,7 +309,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey.shade500,
+                                color: context.appTextSecondary,
                               ),
                             ),
                           ),
@@ -319,7 +338,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
-                              'Rs ${school.fees.toStringAsFixed(0)}/yr',
+                              'Rs ${_formatFees(school.fees)}/yr',
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 12,
@@ -382,8 +401,8 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
     return Container(
       width: 60,
       height: 60,
-      color: Colors.grey.shade200,
-      child: Icon(Icons.school, size: 24, color: Colors.grey.shade400),
+      color: context.appSurfaceMuted,
+      child: Icon(Icons.school, size: 24, color: context.appTextSecondary),
     );
   }
 }

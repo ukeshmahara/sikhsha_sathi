@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/pages/notification_page.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/view_model/notification_view_model.dart';
@@ -128,9 +129,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? _kPrimaryBlue : Colors.white,
+          color: isSelected ? _kPrimaryBlue : context.appSurface,
           borderRadius: BorderRadius.circular(20),
-          border: isSelected ? null : Border.all(color: Colors.grey.shade300),
+          border: isSelected ? null : Border.all(color: context.appBorder),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -138,7 +139,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             Icon(
               icon,
               size: 14,
-              color: isSelected ? Colors.white : Colors.grey.shade700,
+              color: isSelected ? Colors.white : context.appTextSecondary,
             ),
             const SizedBox(width: 6),
             Text(
@@ -146,7 +147,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w500,
-                color: isSelected ? Colors.white : Colors.black87,
+                color: isSelected ? Colors.white : context.appTextPrimary,
               ),
             ),
             const SizedBox(width: 4),
@@ -156,7 +157,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                 fontSize: 10,
                 color: isSelected
                     ? Colors.white.withValues(alpha: 0.8)
-                    : Colors.grey.shade500,
+                    : context.appTextSecondary,
               ),
             ),
           ],
@@ -223,7 +224,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     final schoolState = ref.watch(schoolViewModelProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: context.appBackground,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {
@@ -291,7 +292,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                         Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: context.appSurface,
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
@@ -314,12 +315,12 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                     hintText: 'Search school, keyword',
                                     hintStyle: TextStyle(
                                       fontSize: 13,
-                                      color: Colors.grey.shade500,
+                                      color: context.appTextSecondary,
                                     ),
                                     prefixIcon: Icon(
                                       Icons.search,
                                       size: 20,
-                                      color: Colors.grey.shade500,
+                                      color: context.appTextSecondary,
                                     ),
                                     border: InputBorder.none,
                                     isDense: true,

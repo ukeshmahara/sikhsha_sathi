@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
 
@@ -41,6 +42,23 @@ class SchoolDetailPage extends ConsumerWidget {
       default:
         return stream;
     }
+  }
+
+  // Formats 1500000 -> "1,500,000" without needing the intl package
+  String _formatFees(double fees) {
+    final wholeNumber = fees.toStringAsFixed(0);
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < wholeNumber.length; i++) {
+      final positionFromEnd = wholeNumber.length - i;
+      buffer.write(wholeNumber[i]);
+
+      if (positionFromEnd > 1 && positionFromEnd % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+
+    return buffer.toString();
   }
 
   @override
@@ -101,10 +119,10 @@ class SchoolDetailPage extends ConsumerWidget {
                   ? Image.network(
                       _imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _headerPlaceholder(),
+                      errorBuilder: (errorContext, error, stackTrace) =>
+                          _headerPlaceholder(context),
                     )
-                  : _headerPlaceholder(),
+                  : _headerPlaceholder(context),
             ),
           ),
           SliverToBoxAdapter(
@@ -124,17 +142,17 @@ class SchoolDetailPage extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
                         size: 18,
-                        color: Colors.grey,
+                        color: context.appTextSecondary,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           school.location,
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: context.appTextSecondary,
                             fontSize: 15,
                           ),
                         ),
@@ -167,7 +185,7 @@ class SchoolDetailPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'Rs ${school.fees.toStringAsFixed(0)}/year',
+                        'Rs ${_formatFees(school.fees)}/year',
                         style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
@@ -293,13 +311,13 @@ class SchoolDetailPage extends ConsumerWidget {
                     const SizedBox(height: 10),
                     if (school.contactPhone != null &&
                         school.contactPhone!.isNotEmpty)
-                      _contactRow(Icons.phone, school.contactPhone!),
+                      _contactRow(context, Icons.phone, school.contactPhone!),
                     if (school.contactEmail != null &&
                         school.contactEmail!.isNotEmpty)
-                      _contactRow(Icons.email, school.contactEmail!),
+                      _contactRow(context, Icons.email, school.contactEmail!),
                     if (school.contactWebsite != null &&
                         school.contactWebsite!.isNotEmpty)
-                      _contactRow(Icons.language, school.contactWebsite!),
+                      _contactRow(context, Icons.language, school.contactWebsite!),
                   ],
                 ],
               ),
@@ -310,7 +328,7 @@ class SchoolDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _headerPlaceholder() {
+  Widget _headerPlaceholder(BuildContext context) {
     return Container(
       color: Colors.blue.shade100,
       child: Icon(
@@ -321,12 +339,12 @@ class SchoolDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _contactRow(IconData icon, String value) {
+  Widget _contactRow(BuildContext context, IconData icon, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey.shade600),
+          Icon(icon, size: 18, color: context.appTextSecondary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

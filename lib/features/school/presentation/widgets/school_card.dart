@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
 
@@ -53,6 +54,23 @@ class SchoolCard extends ConsumerWidget {
     }
   }
 
+  // Formats 1500000 -> "1,500,000" without needing the intl package
+  String _formatFees(double fees) {
+    final wholeNumber = fees.toStringAsFixed(0);
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < wholeNumber.length; i++) {
+      final positionFromEnd = wholeNumber.length - i;
+      buffer.write(wholeNumber[i]);
+
+      if (positionFromEnd > 1 && positionFromEnd % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+
+    return buffer.toString();
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final favouriteState = ref.watch(favouriteViewModelProvider);
@@ -67,7 +85,7 @@ class SchoolCard extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.appSurface,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
@@ -90,14 +108,14 @@ class SchoolCard extends ConsumerWidget {
                           width: 76,
                           height: 76,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _placeholderImage(),
+                          errorBuilder: (errorContext, error, stackTrace) =>
+                              _placeholderImage(context),
                           loadingBuilder: (context, child, progress) {
                             if (progress == null) return child;
                             return Container(
                               width: 76,
                               height: 76,
-                              color: Colors.grey.shade200,
+                              color: context.appSurfaceMuted,
                               child: const Center(
                                 child:
                                     CircularProgressIndicator(strokeWidth: 2),
@@ -105,7 +123,7 @@ class SchoolCard extends ConsumerWidget {
                             );
                           },
                         )
-                      : _placeholderImage(),
+                      : _placeholderImage(context),
                 ),
                 if (school.id != null)
                   Positioned(
@@ -170,7 +188,7 @@ class SchoolCard extends ConsumerWidget {
                       Icon(
                         Icons.location_on,
                         size: 10,
-                        color: Colors.grey.shade500,
+                        color: context.appTextSecondary,
                       ),
                       const SizedBox(width: 2),
                       Expanded(
@@ -180,7 +198,7 @@ class SchoolCard extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade500,
+                            color: context.appTextSecondary,
                           ),
                         ),
                       ),
@@ -209,7 +227,7 @@ class SchoolCard extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          'Rs ${school.fees.toStringAsFixed(0)}/yr',
+                          'Rs ${_formatFees(school.fees)}/yr',
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 12,
@@ -229,15 +247,15 @@ class SchoolCard extends ConsumerWidget {
     );
   }
 
-  Widget _placeholderImage() {
+  Widget _placeholderImage(BuildContext context) {
     return Container(
       width: 76,
       height: 76,
-      color: Colors.grey.shade200,
+      color: context.appSurfaceMuted,
       child: Icon(
         Icons.school,
         size: 28,
-        color: Colors.grey.shade400,
+        color: context.appTextSecondary,
       ),
     );
   }
