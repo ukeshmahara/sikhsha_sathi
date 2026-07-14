@@ -7,10 +7,16 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
+import 'package:sikhsha_sathi/app/theme/theme_state.dart';
+import 'package:sikhsha_sathi/app/theme/theme_view_model.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
+import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/state/profile_state.dart';
+import 'package:sikhsha_sathi/features/school/presentation/view_model/school_view_model.dart';
 
 class ProfileTab extends ConsumerStatefulWidget {
   const ProfileTab({super.key});
@@ -241,7 +247,7 @@ class _ProfileTabState
 
     return Scaffold(
       backgroundColor:
-          Colors.grey.shade100,
+          context.appBackground,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -279,7 +285,7 @@ class _ProfileTabState
                   child: CircleAvatar(
                     radius: 60,
                     backgroundColor:
-                        Colors.white,
+                        context.appSurface,
                     backgroundImage:
                         _selectedImage != null
                             ? FileImage(
@@ -293,11 +299,11 @@ class _ProfileTabState
                     child:
                         _selectedImage == null &&
                                 savedProfilePictureUrl == null
-                            ? const Icon(
+                            ? Icon(
                                 Icons.person,
                                 size: 80,
                                 color:
-                                    Colors.grey,
+                                    context.appTextSecondary,
                               )
                             : null,
                   ),
@@ -363,7 +369,7 @@ class _ProfileTabState
               email,
               style: TextStyle(
                 color:
-                    Colors.grey.shade700,
+                    context.appTextSecondary,
                 fontSize: 18,
               ),
             ),
@@ -389,6 +395,26 @@ class _ProfileTabState
             ),
 
             const SizedBox(height: 20),
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: _buildThemeToggle(ref),
+            ),
+
+            const SizedBox(height: 10),
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: _buildBiometricToggle(context, ref),
+            ),
+
+            const SizedBox(height: 10),
 
             Padding(
               padding:
@@ -425,8 +451,20 @@ class _ProfileTabState
                         Colors.red,
                   ),
                   onPressed: () async {
+                    // clear the favourite Hive cache and in-memory state so
+                    // the next user on this device doesn't see this user's
+                    // favourites, even without a full app restart
+                    await ref
+                        .read(favouriteViewModelProvider.notifier)
+                        .clearCache();
+
                     await session
                         .clearSession();
+
+                    // force schools and profile to reload fresh next time
+                    // too, rather than reusing stale in-memory state
+                    ref.invalidate(schoolViewModelProvider);
+                    ref.invalidate(profileViewModelProvider);
 
                     if (context.mounted) {
                       Navigator.pushAndRemoveUntil(
@@ -470,7 +508,7 @@ class _ProfileTabState
       padding:
           const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appSurface,
         borderRadius:
             BorderRadius.circular(16),
       ),
@@ -491,8 +529,8 @@ class _ProfileTabState
                 Text(
                   title,
                   style:
-                      const TextStyle(
-                    color: Colors.grey,
+                      TextStyle(
+                    color: context.appTextSecondary,
                   ),
                 ),
                 const SizedBox(
@@ -510,6 +548,131 @@ class _ProfileTabState
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBiometricToggle(BuildContext context, WidgetRef ref) {
+    final session = ref.read(userSessionServiceProvider);
+    final isEnabled = session.isBiometricLoginEnabled();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.appSurface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.fingerprint, color: context.isDark ? Colors.blue.shade200 : Colors.blue),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Fingerprint login',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: context.appTextPrimary,
+                  ),
+                ),
+                Text(
+                  'Unlock the app with your fingerprint',
+                  style: TextStyle(fontSize: 11, color: context.appTextSecondary),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: isEnabled,
+            onChanged: (value) async {
+              if (value) {
+                // require a successful scan before turning this on, so we
+                // know the device's biometrics actually work for this user
+                final biometricService = ref.read(biometricServiceProvider);
+                final canUse = await biometricService.canCheckBiometrics();
+
+                if (!canUse) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'No fingerprint set up on this device. Add one in your phone settings first.',
+                        ),
+                      ),
+                    );
+                  }
+                  return;
+                }
+
+                final confirmed = await biometricService.authenticate(
+                  reason: 'Confirm your fingerprint to enable fingerprint login',
+                );
+
+                if (!confirmed) return;
+              }
+
+              await session.setBiometricLoginEnabled(value);
+              setState(() {});
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeToggle(WidgetRef ref) {
+    final themeState = ref.watch(themeViewModelProvider);
+
+    Widget option(AppThemeMode mode, IconData icon, String label) {
+      final isSelected = themeState.mode == mode;
+
+      return Expanded(
+        child: GestureDetector(
+          onTap: () =>
+              ref.read(themeViewModelProvider.notifier).setMode(mode),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.blue : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isSelected ? Colors.white : context.appTextSecondary,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isSelected ? Colors.white : context.appTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: context.appSurfaceMuted,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          option(AppThemeMode.light, Icons.light_mode, 'Light'),
+          option(AppThemeMode.dark, Icons.dark_mode, 'Dark'),
+          option(AppThemeMode.auto, Icons.brightness_auto, 'Auto'),
         ],
       ),
     );
