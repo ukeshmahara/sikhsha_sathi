@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
+import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
+import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
 import 'package:sikhsha_sathi/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'forgot_password_page.dart';
 import 'signup_view.dart';
@@ -30,6 +33,34 @@ class _LoginViewState
   TextEditingController();
 
   bool _obscure = true;
+  bool _showBiometricButton = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricAvailability();
+  }
+
+  Future<void> _checkBiometricAvailability() async {
+    final session = ref.read(userSessionServiceProvider);
+
+    if (!session.isBiometricLoginEnabled()) {
+      return;
+    }
+
+    final biometricService = ref.read(biometricServiceProvider);
+    final canUse = await biometricService.canCheckBiometrics();
+
+    if (mounted) {
+      setState(() {
+        _showBiometricButton = canUse;
+      });
+    }
+  }
+
+  Future<void> _loginWithBiometric() async {
+    await ref.read(authViewModelProvider.notifier).loginWithBiometric();
+  }
 
   @override
   void dispose() {
@@ -111,7 +142,7 @@ class _LoginViewState
 
     return Scaffold(
 
-      backgroundColor: Colors.white,
+      backgroundColor: context.appBackground,
 
       body: SafeArea(
 
@@ -355,6 +386,40 @@ class _LoginViewState
                     ),
                   ),
                 ),
+
+                const SizedBox(height: 30),
+
+                // FINGERPRINT LOGIN — only shown if the user enabled it
+                // from Profile and this device supports biometrics
+                if (_showBiometricButton)
+                  Center(
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: authState.status == AuthStatus.loading
+                              ? null
+                              : _loginWithBiometric,
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.blue, width: 1.5),
+                            ),
+                            child: const Icon(
+                              Icons.fingerprint,
+                              size: 36,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "Login with fingerprint",
+                          style: TextStyle(fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
 
                 const SizedBox(height: 30),
 
