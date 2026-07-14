@@ -14,7 +14,7 @@ final profileViewModelProvider =
 class ProfileViewModel
     extends Notifier<ProfileState> {
 
-  late final UploadProfilePictureUsecase
+  late UploadProfilePictureUsecase
       _uploadProfilePictureUsecase;
 
   @override

@@ -17,8 +17,8 @@ final notificationViewModelProvider =
 // ================= VIEWMODEL =================
 
 class NotificationViewModel extends Notifier<NotificationState> {
-  late final GetNotificationsUsecase _getNotificationsUsecase;
-  late final SharedPreferences _prefs;
+  late GetNotificationsUsecase _getNotificationsUsecase;
+  late SharedPreferences _prefs;
 
   @override
   NotificationState build() {
