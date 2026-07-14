@@ -1,5 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
+import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
+
+import '../../domain/usecases/get_current_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
 
@@ -12,8 +16,10 @@ NotifierProvider<AuthViewModel, AuthState>(
 );
 
 class AuthViewModel extends Notifier<AuthState> {
-late final RegisterUsecase _registerUsecase;
-late final LoginUsecase _loginUsecase;
+late RegisterUsecase _registerUsecase;
+late LoginUsecase _loginUsecase;
+late GetCurrentUserUsecase _getCurrentUserUsecase;
+late BiometricService _biometricService;
 
 @override
 AuthState build() {
@@ -23,6 +29,12 @@ ref.read(registerUsecaseProvider);
 
 _loginUsecase =
     ref.read(loginUsecaseProvider);
+
+_getCurrentUserUsecase =
+    ref.read(getCurrentUserUsecaseProvider);
+
+_biometricService =
+    ref.read(biometricServiceProvider);
 
 return const AuthState();
 
@@ -39,10 +51,6 @@ required String phoneNumber,
 }) async {
 state = state.copyWith(
 status: AuthStatus.loading,
-);
-
-await Future.delayed(
-  const Duration(seconds: 2),
 );
 
 final params = RegisterUsecaseParams(
@@ -89,10 +97,6 @@ state = state.copyWith(
 status: AuthStatus.loading,
 );
 
-await Future.delayed(
-  const Duration(seconds: 2),
-);
-
 final params = LoginParams(
   email: email,
   password: password,
@@ -117,6 +121,81 @@ result.fold(
 );
 
 
+}
+
+// ================= BIOMETRIC LOGIN =================
+// Requires the user to have logged in successfully at least once before
+// (so a valid token + session is already cached), and to have opted in
+// via the toggle in Profile. This does NOT create a new session — it
+// just unlocks the one that's already saved on the device using
+// GET /auth/whoami with the cached token.
+
+Future<void> loginWithBiometric() async {
+  final session = ref.read(userSessionServiceProvider);
+
+  if (!session.isBiometricLoginEnabled()) {
+    state = state.copyWith(
+      status: AuthStatus.error,
+      errorMessage:
+          "Fingerprint login is not enabled. Enable it from your Profile after logging in normally.",
+    );
+    return;
+  }
+
+  final canUseBiometrics =
+      await _biometricService.canCheckBiometrics();
+
+  if (!canUseBiometrics) {
+    state = state.copyWith(
+      status: AuthStatus.error,
+      errorMessage:
+          "Fingerprint is not available or not set up on this device.",
+    );
+    return;
+  }
+
+  final authenticated = await _biometricService.authenticate(
+    reason: "Scan your fingerprint to log in",
+  );
+
+  if (!authenticated) {
+    // user cancelled or failed the scan — don't show an error state,
+    // just silently stay on the login screen
+    return;
+  }
+
+  state = state.copyWith(status: AuthStatus.loading);
+
+  final result = await _getCurrentUserUsecase(const CurrentUserParams());
+
+  result.fold(
+    (failure) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage:
+            "Session check failed: ${failure.message}",
+      );
+    },
+    (user) async {
+      // biometric login goes through GET /auth/whoami, which never
+      // touches UserSessionService the way a normal password login does
+      // (that happens inside auth_remote_datasource.dart's login()) —
+      // without this, ProfileTab/HomeTab keep showing whatever was left
+      // over from before logout (or nothing at all).
+      await session.saveUserSession(
+        userId: user.userId ?? "",
+        email: user.email,
+        fullName: user.fullName,
+        phoneNumber: user.phoneNumber,
+        profilePicture: user.profilePicture,
+      );
+
+      state = state.copyWith(
+        status: AuthStatus.authenticated,
+        user: user,
+      );
+    },
+  );
 }
 
 // ================= RESET =================
