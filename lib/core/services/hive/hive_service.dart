@@ -186,6 +186,16 @@ class HiveService {
     }
   }
 
+  // ================= CLEAR ALL CACHED FAVOURITES =================
+  // Called on logout — the favourite box is a single shared table on the
+  // device, not scoped per user, so it must be wiped when a session ends
+  // or the next user to log in on this device would see the previous
+  // user's favourites.
+
+  Future<void> clearFavouriteCache() async {
+    await _favouriteBox.clear();
+  }
+
   // ================= CACHE SINGLE FAVOURITE =================
 
   Future<void> cacheFavourite(

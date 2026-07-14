@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sikhsha_sathi/features/favourite/data/repositories/favourite_repository.dart';
 import 'package:sikhsha_sathi/features/favourite/domain/entities/favourite_entity.dart';
 import 'package:sikhsha_sathi/features/favourite/domain/usecases/add_favourite_usecase.dart';
 import 'package:sikhsha_sathi/features/favourite/domain/usecases/get_favourites_usecase.dart';
@@ -17,9 +18,9 @@ final favouriteViewModelProvider =
 // ================= VIEWMODEL =================
 
 class FavouriteViewModel extends Notifier<FavouriteState> {
-  late final GetFavouritesUsecase _getFavouritesUsecase;
-  late final AddFavouriteUsecase _addFavouriteUsecase;
-  late final RemoveFavouriteUsecase _removeFavouriteUsecase;
+  late GetFavouritesUsecase _getFavouritesUsecase;
+  late AddFavouriteUsecase _addFavouriteUsecase;
+  late RemoveFavouriteUsecase _removeFavouriteUsecase;
 
   @override
   FavouriteState build() {
@@ -98,5 +99,15 @@ class FavouriteViewModel extends Notifier<FavouriteState> {
 
   void clearError() {
     state = state.copyWith(errorMessage: null);
+  }
+
+  // Called on logout — clears the Hive cache AND resets the in-memory
+  // state back to initial, so the next user who logs in on this device
+  // (without the app being fully restarted) doesn't see this user's
+  // favourites for even a moment.
+  Future<void> clearCache() async {
+    final repository = ref.read(favouriteRepositoryProvider);
+    await repository.clearLocalCache();
+    state = const FavouriteState();
   }
 }

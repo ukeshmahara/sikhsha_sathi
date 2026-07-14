@@ -9,4 +9,6 @@ abstract interface class IFavouriteRepository {
   Future<Either<Failure, bool>> addFavourite(String schoolId);
 
   Future<Either<Failure, bool>> removeFavourite(String schoolId);
+
+  Future<void> clearLocalCache();
 }

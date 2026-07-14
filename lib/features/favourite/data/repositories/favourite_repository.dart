@@ -106,4 +106,13 @@ class FavouriteRepository implements IFavouriteRepository {
       return Left(ApiFailure(message: e.toString()));
     }
   }
+
+  // ================= CLEAR LOCAL CACHE =================
+  // Called on logout so the next user on this device never sees
+  // whatever the previous user had cached.
+
+  @override
+  Future<void> clearLocalCache() async {
+    await _localDatasource.clearCache();
+  }
 }
