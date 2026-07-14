@@ -41,6 +41,9 @@ class UserSessionService {
   static const String _profilePicture =
       "profile_picture";
 
+  static const String _biometricEnabled =
+      "biometric_login_enabled";
+
   Future<void> saveUserSession({
     required String userId,
     required String email,
@@ -137,6 +140,14 @@ class UserSessionService {
     await _prefs.remove(
       _profilePicture,
     );
+  }
+
+  bool isBiometricLoginEnabled() {
+    return _prefs.getBool(_biometricEnabled) ?? false;
+  }
+
+  Future<void> setBiometricLoginEnabled(bool enabled) async {
+    await _prefs.setBool(_biometricEnabled, enabled);
   }
 
   Future<void> clearSession() async {
