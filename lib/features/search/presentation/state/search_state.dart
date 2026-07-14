@@ -10,6 +10,9 @@ class SearchState extends Equatable {
   final String query;
   final String selectedCategory; // '' means no category filter
   final String selectedStream; // '' means no stream filter
+  final double? minFee;
+  final double? maxFee;
+  final String sortOption; // '' | 'fees_asc' | 'fees_desc' | 'name_asc'
   final String? errorMessage;
 
   const SearchState({
@@ -18,11 +21,18 @@ class SearchState extends Equatable {
     this.query = '',
     this.selectedCategory = '',
     this.selectedStream = '',
+    this.minFee,
+    this.maxFee,
+    this.sortOption = '',
     this.errorMessage,
   });
 
   bool get hasActiveFilters =>
-      selectedCategory.isNotEmpty || selectedStream.isNotEmpty;
+      selectedCategory.isNotEmpty ||
+      selectedStream.isNotEmpty ||
+      minFee != null ||
+      maxFee != null ||
+      sortOption.isNotEmpty;
 
   SearchState copyWith({
     SearchStatus? status,
@@ -30,6 +40,10 @@ class SearchState extends Equatable {
     String? query,
     String? selectedCategory,
     String? selectedStream,
+    double? minFee,
+    double? maxFee,
+    String? sortOption,
+    bool clearFeeRange = false,
     String? errorMessage,
   }) {
     return SearchState(
@@ -38,6 +52,9 @@ class SearchState extends Equatable {
       query: query ?? this.query,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       selectedStream: selectedStream ?? this.selectedStream,
+      minFee: clearFeeRange ? null : (minFee ?? this.minFee),
+      maxFee: clearFeeRange ? null : (maxFee ?? this.maxFee),
+      sortOption: sortOption ?? this.sortOption,
       errorMessage: errorMessage,
     );
   }
@@ -49,6 +66,9 @@ class SearchState extends Equatable {
         query,
         selectedCategory,
         selectedStream,
+        minFee,
+        maxFee,
+        sortOption,
         errorMessage,
       ];
 }

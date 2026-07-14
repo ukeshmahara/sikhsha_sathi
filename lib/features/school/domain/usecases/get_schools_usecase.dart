@@ -15,6 +15,9 @@ class GetSchoolsParams {
   final String search;
   final String category;
   final String stream;
+  final double? minFee;
+  final double? maxFee;
+  final String sort; // '' | 'fees_asc' | 'fees_desc' | 'name_asc'
 
   const GetSchoolsParams({
     this.page = 1,
@@ -22,6 +25,9 @@ class GetSchoolsParams {
     this.search = '',
     this.category = '',
     this.stream = '',
+    this.minFee,
+    this.maxFee,
+    this.sort = '',
   });
 }
 
@@ -52,6 +58,9 @@ class GetSchoolsUsecase
       search: params.search,
       category: params.category,
       stream: params.stream,
+      minFee: params.minFee,
+      maxFee: params.maxFee,
+      sort: params.sort,
     );
   }
 }

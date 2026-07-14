@@ -13,7 +13,7 @@ final searchViewModelProvider =
 // ================= VIEWMODEL =================
 
 class SearchViewModel extends Notifier<SearchState> {
-  late final GetSchoolsUsecase _getSchoolsUsecase;
+  late GetSchoolsUsecase _getSchoolsUsecase;
   Timer? _debounce;
 
   @override
@@ -51,8 +51,29 @@ class SearchViewModel extends Notifier<SearchState> {
     _runSearch();
   }
 
+  void setFeeRange(double? minFee, double? maxFee) {
+    state = state.copyWith(minFee: minFee, maxFee: maxFee);
+    _runSearch();
+  }
+
+  void clearFeeRange() {
+    state = state.copyWith(clearFeeRange: true);
+    _runSearch();
+  }
+
+  void setSort(String sort) {
+    final newSort = state.sortOption == sort ? '' : sort;
+    state = state.copyWith(sortOption: newSort);
+    _runSearch();
+  }
+
   void clearFilters() {
-    state = state.copyWith(selectedCategory: '', selectedStream: '');
+    state = state.copyWith(
+      selectedCategory: '',
+      selectedStream: '',
+      sortOption: '',
+      clearFeeRange: true,
+    );
     _runSearch();
   }
 
@@ -77,6 +98,9 @@ class SearchViewModel extends Notifier<SearchState> {
       search: state.query.trim(),
       category: state.selectedCategory,
       stream: state.selectedStream,
+      minFee: state.minFee,
+      maxFee: state.maxFee,
+      sort: state.sortOption,
     );
 
     final result = await _getSchoolsUsecase(params);

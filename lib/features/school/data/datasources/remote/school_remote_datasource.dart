@@ -32,6 +32,9 @@ abstract interface class ISchoolRemoteDataSource {
     required String search,
     required String category,
     required String stream,
+    double? minFee,
+    double? maxFee,
+    required String sort,
   });
 
   Future<SchoolApiModel> getSchoolById(String id);
@@ -61,6 +64,9 @@ class SchoolRemoteDatasource implements ISchoolRemoteDataSource {
     required String search,
     required String category,
     required String stream,
+    double? minFee,
+    double? maxFee,
+    required String sort,
   }) async {
     final query = <String>[
       'page=$page',
@@ -68,6 +74,9 @@ class SchoolRemoteDatasource implements ISchoolRemoteDataSource {
       if (search.isNotEmpty) 'search=${Uri.encodeQueryComponent(search)}',
       if (category.isNotEmpty) 'category=$category',
       if (stream.isNotEmpty) 'stream=$stream',
+      if (minFee != null) 'minFee=${minFee.toStringAsFixed(0)}',
+      if (maxFee != null) 'maxFee=${maxFee.toStringAsFixed(0)}',
+      if (sort.isNotEmpty) 'sort=$sort',
     ].join('&');
 
     final response = await apiClient.get(

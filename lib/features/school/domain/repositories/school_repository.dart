@@ -26,6 +26,9 @@ abstract interface class ISchoolRepository {
     String search,
     String category,
     String stream,
+    double? minFee,
+    double? maxFee,
+    String sort,
   });
 
   Future<Either<Failure, SchoolEntity>> getSchoolById(String id);
