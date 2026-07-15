@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/pages/notification_page.dart';
@@ -222,6 +225,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   @override
   Widget build(BuildContext context) {
     final schoolState = ref.watch(schoolViewModelProvider);
+    final lang = ref.watch(localeViewModelProvider).language;
 
     return Scaffold(
       backgroundColor: context.appBackground,
@@ -250,9 +254,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Good morning',
-                            style: TextStyle(
+                          Text(
+                            AppStrings.get('goodMorning', lang),
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
                             ),
@@ -312,7 +316,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                         .search(value);
                                   },
                                   decoration: InputDecoration(
-                                    hintText: 'Search school, keyword',
+                                    hintText:
+                                        AppStrings.get('searchSchoolKeyword', lang),
                                     hintStyle: TextStyle(
                                       fontSize: 13,
                                       color: context.appTextSecondary,
@@ -352,16 +357,16 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
                         // LOCATION
                         Row(
-                          children: const [
-                            Icon(
+                          children: [
+                            const Icon(
                               Icons.location_on,
                               size: 16,
                               color: _kPrimaryBlue,
                             ),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
-                              'Kathmandu, Nepal',
-                              style: TextStyle(
+                              AppStrings.get('kathmanduNepal', lang),
+                              style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -384,7 +389,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                               children: [
                                 _buildCategoryChip(
                                   icon: Icons.public,
-                                  label: 'International',
+                                  label: AppStrings.get('international', lang),
                                   count: schoolState.categoryCounts[
                                           'international'] ??
                                       0,
@@ -396,7 +401,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                 ),
                                 _buildCategoryChip(
                                   icon: Icons.account_balance,
-                                  label: 'Public',
+                                  label: AppStrings.get('public', lang),
                                   count: schoolState.categoryCounts['public'] ??
                                       0,
                                   isSelected:
@@ -407,7 +412,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                 ),
                                 _buildCategoryChip(
                                   icon: Icons.business,
-                                  label: 'Private',
+                                  label: AppStrings.get('private', lang),
                                   count:
                                       schoolState.categoryCounts['private'] ??
                                           0,
@@ -419,7 +424,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                 ),
                                 _buildCategoryChip(
                                   icon: Icons.monetization_on,
-                                  label: 'Budget friendly',
+                                  label: AppStrings.get('budgetFriendly', lang),
                                   count: schoolState.categoryCounts[
                                           'budget_friendly'] ??
                                       0,
@@ -441,8 +446,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           bg: const Color(0xFFEEEDFE),
                           iconBg: const Color(0xFF7F77DD),
                           icon: Icons.auto_awesome,
-                          title: 'AI school recommendation',
-                          subtitle: 'Get suggestions based on your needs',
+                          title: AppStrings.get('aiRecommendationTitle', lang),
+                          subtitle:
+                              AppStrings.get('aiRecommendationSubtitle', lang),
                           textColor: const Color(0xFF3C3489),
                         ),
 
@@ -451,8 +457,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           bg: const Color(0xFFE6F1FB),
                           iconBg: const Color(0xFF378ADD),
                           icon: Icons.chat_bubble_outline,
-                          title: 'AI school assistant',
-                          subtitle: 'Ask anything about schools',
+                          title: AppStrings.get('aiChatbotTitle', lang),
+                          subtitle: AppStrings.get('aiChatbotSubtitle', lang),
                           textColor: const Color(0xFF0C447C),
                         ),
 
@@ -464,8 +470,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           children: [
                             Text(
                               schoolState.selectedCategory.isEmpty
-                                  ? 'All schools'
-                                  : 'Filtered schools',
+                                  ? AppStrings.get('allSchools', lang)
+                                  : AppStrings.get('filteredSchools', lang),
                               style: const TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
@@ -478,9 +484,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                     .selectCategory(
                                       schoolState.selectedCategory,
                                     ),
-                                child: const Text(
-                                  'Clear filter',
-                                  style: TextStyle(
+                                child: Text(
+                                  AppStrings.get('clearFilter', lang),
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     color: _kPrimaryBlue,
                                   ),
@@ -491,9 +497,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                 onTap: () {
                                   // TODO: navigate to Search tab with full list once built
                                 },
-                                child: const Text(
-                                  'See all',
-                                  style: TextStyle(
+                                child: Text(
+                                  AppStrings.get('seeAll', lang),
+                                  style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                     color: _kPrimaryBlue,
@@ -506,7 +512,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                         const SizedBox(height: 12),
 
                         // SCHOOL LIST — full-width vertical cards
-                        _buildSchoolList(schoolState),
+                        _buildSchoolList(schoolState, lang),
                       ],
                     ),
                   ),
@@ -519,7 +525,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     );
   }
 
-  Widget _buildSchoolList(SchoolState schoolState) {
+  Widget _buildSchoolList(SchoolState schoolState, AppLanguage lang) {
     if (schoolState.status == SchoolStatus.loading &&
         schoolState.schools.isEmpty) {
       return const Padding(
@@ -535,7 +541,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         child: Column(
           children: [
             Text(
-              schoolState.errorMessage ?? 'Something went wrong',
+              schoolState.errorMessage ??
+                  AppStrings.get('somethingWentWrong', lang),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -543,7 +550,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
               onPressed: () => ref
                   .read(schoolViewModelProvider.notifier)
                   .loadSchools(reset: true),
-              child: const Text('Retry'),
+              child: Text(AppStrings.get('retry', lang)),
             ),
           ],
         ),
@@ -551,9 +558,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     }
 
     if (schoolState.schools.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 40),
-        child: Center(child: Text('No schools found')),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Center(child: Text(AppStrings.get('noSchoolsFound', lang))),
       );
     }
 
