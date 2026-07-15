@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/state/favourite_state.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
@@ -43,14 +46,14 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
     }
   }
 
-  String _categoryLabel(String category) {
+  String _categoryLabel(String category, AppLanguage lang) {
     switch (category) {
       case 'international':
-        return 'International';
+        return AppStrings.get('international', lang);
       case 'public':
-        return 'Public';
+        return AppStrings.get('public', lang);
       case 'private':
-        return 'Private';
+        return AppStrings.get('private', lang);
       default:
         return category;
     }
@@ -77,6 +80,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
   Widget build(BuildContext context) {
     final favouriteState = ref.watch(favouriteViewModelProvider);
     final count = favouriteState.favourites.length;
+    final lang = ref.watch(localeViewModelProvider).language;
 
     return SafeArea(
       child: Column(
@@ -97,7 +101,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Favourites',
+                      AppStrings.get('favourites', lang),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
@@ -135,7 +139,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Schools you\'ve saved for quick access',
+                  AppStrings.get('schoolsSavedForQuickAccess', lang),
                   style: TextStyle(
                     fontSize: 13,
                     color: context.appTextSecondary,
@@ -151,7 +155,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                     .read(favouriteViewModelProvider.notifier)
                     .loadFavourites();
               },
-              child: _buildBody(favouriteState),
+              child: _buildBody(favouriteState, lang),
             ),
           ),
         ],
@@ -159,7 +163,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
     );
   }
 
-  Widget _buildBody(FavouriteState favouriteState) {
+  Widget _buildBody(FavouriteState favouriteState, AppLanguage lang) {
     if (favouriteState.status == FavouriteStatus.loading &&
         favouriteState.favourites.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -172,7 +176,8 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
           const SizedBox(height: 100),
           Center(
             child: Text(
-              favouriteState.errorMessage ?? 'Something went wrong',
+              favouriteState.errorMessage ??
+                  AppStrings.get('somethingWentWrong', lang),
               textAlign: TextAlign.center,
             ),
           ),
@@ -182,7 +187,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
               onPressed: () => ref
                   .read(favouriteViewModelProvider.notifier)
                   .loadFavourites(),
-              child: const Text('Retry'),
+              child: Text(AppStrings.get('retry', lang)),
             ),
           ),
         ],
@@ -211,7 +216,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              'No favourites yet',
+              AppStrings.get('noFavouritesYet', lang),
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -224,7 +229,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Tap the heart icon on any school to save it here for quick access',
+                AppStrings.get('tapHeartToSave', lang),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -328,7 +333,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              _categoryLabel(school.category),
+                              _categoryLabel(school.category, lang),
                               style: TextStyle(
                                 fontSize: 10,
                                 color: categoryColors['text'],
@@ -338,7 +343,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
-                              'Rs ${_formatFees(school.fees)}/yr',
+                              'Rs ${_formatFees(school.fees)}${AppStrings.get('perYearShort', lang)}',
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 fontSize: 12,
@@ -369,7 +374,8 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                               SnackBar(
                                 content: Text(
                                   errorMessage ??
-                                      'Could not remove favourite',
+                                      AppStrings.get(
+                                          'couldNotRemoveFavourite', lang),
                                 ),
                               ),
                             );
