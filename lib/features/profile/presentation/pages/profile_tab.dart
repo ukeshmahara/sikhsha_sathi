@@ -9,6 +9,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
 import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/app/theme/theme_state.dart';
 import 'package:sikhsha_sathi/app/theme/theme_view_model.dart';
@@ -233,17 +236,19 @@ class _ProfileTabState
     final profileState =
         ref.watch(profileViewModelProvider);
 
+    final lang = ref.watch(localeViewModelProvider).language;
+
     final fullName =
         session.getFullName() ??
-            "Unknown User";
+            AppStrings.get('unknownUser', lang);
 
     final email =
         session.getEmail() ??
-            "No Email";
+            AppStrings.get('noEmail', lang);
 
     final phone =
         session.getPhoneNumber() ??
-            "No Phone";
+            AppStrings.get('noPhone', lang);
 
     return Scaffold(
       backgroundColor:
@@ -262,10 +267,10 @@ class _ProfileTabState
                   const BoxDecoration(
                 color: Colors.blue,
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  "Profile",
-                  style: TextStyle(
+                  AppStrings.get('profile', lang),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
                     fontWeight:
@@ -378,19 +383,19 @@ class _ProfileTabState
 
             _profileTile(
               Icons.person_outline,
-              "Full Name",
+              AppStrings.get('fullName', lang),
               fullName,
             ),
 
             _profileTile(
               Icons.email_outlined,
-              "Email",
+              AppStrings.get('email', lang),
               email,
             ),
 
             _profileTile(
               Icons.phone_outlined,
-              "Phone Number",
+              AppStrings.get('phoneNumber', lang),
               phone,
             ),
 
@@ -401,7 +406,7 @@ class _ProfileTabState
                   const EdgeInsets.symmetric(
                 horizontal: 20,
               ),
-              child: _buildThemeToggle(ref),
+              child: _buildThemeToggle(ref, lang),
             ),
 
             const SizedBox(height: 10),
@@ -411,7 +416,17 @@ class _ProfileTabState
                   const EdgeInsets.symmetric(
                 horizontal: 20,
               ),
-              child: _buildBiometricToggle(context, ref),
+              child: _buildBiometricToggle(context, ref, lang),
+            ),
+
+            const SizedBox(height: 10),
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: _buildLanguageToggle(context, ref, lang),
             ),
 
             const SizedBox(height: 10),
@@ -427,8 +442,8 @@ class _ProfileTabState
                   onPressed: () {},
                   icon:
                       const Icon(Icons.edit),
-                  label: const Text(
-                    "Edit Profile",
+                  label: Text(
+                    AppStrings.get('editProfile', lang),
                   ),
                 ),
               ),
@@ -480,8 +495,8 @@ class _ProfileTabState
                   icon: const Icon(
                     Icons.logout,
                   ),
-                  label: const Text(
-                    "Logout",
+                  label: Text(
+                    AppStrings.get('logout', lang),
                   ),
                 ),
               ),
@@ -553,7 +568,59 @@ class _ProfileTabState
     );
   }
 
-  Widget _buildBiometricToggle(BuildContext context, WidgetRef ref) {
+  Widget _buildLanguageToggle(
+    BuildContext context,
+    WidgetRef ref,
+    AppLanguage lang,
+  ) {
+    final isNepali = lang == AppLanguage.nepali;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.appSurface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.language,
+            color: context.isDark ? Colors.blue.shade200 : Colors.blue,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              AppStrings.get('language', lang),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: context.appTextPrimary,
+              ),
+            ),
+          ),
+          Text(
+            isNepali ? 'ने' : 'EN',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: context.appTextSecondary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Switch(
+            value: isNepali,
+            onChanged: (value) {
+              ref.read(localeViewModelProvider.notifier).setLanguage(
+                    value ? AppLanguage.nepali : AppLanguage.english,
+                  );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBiometricToggle(BuildContext context, WidgetRef ref, AppLanguage lang) {
     final session = ref.read(userSessionServiceProvider);
     final isEnabled = session.isBiometricLoginEnabled();
 
@@ -572,7 +639,7 @@ class _ProfileTabState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Fingerprint login',
+                  AppStrings.get('fingerprintLogin', lang),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -580,7 +647,7 @@ class _ProfileTabState
                   ),
                 ),
                 Text(
-                  'Unlock the app with your fingerprint',
+                  AppStrings.get('unlockWithFingerprint', lang),
                   style: TextStyle(fontSize: 11, color: context.appTextSecondary),
                 ),
               ],
@@ -624,7 +691,7 @@ class _ProfileTabState
     );
   }
 
-  Widget _buildThemeToggle(WidgetRef ref) {
+  Widget _buildThemeToggle(WidgetRef ref, AppLanguage lang) {
     final themeState = ref.watch(themeViewModelProvider);
 
     Widget option(AppThemeMode mode, IconData icon, String label) {
@@ -670,9 +737,9 @@ class _ProfileTabState
       ),
       child: Row(
         children: [
-          option(AppThemeMode.light, Icons.light_mode, 'Light'),
-          option(AppThemeMode.dark, Icons.dark_mode, 'Dark'),
-          option(AppThemeMode.auto, Icons.brightness_auto, 'Auto'),
+          option(AppThemeMode.light, Icons.light_mode, AppStrings.get('light', lang)),
+          option(AppThemeMode.dark, Icons.dark_mode, AppStrings.get('dark', lang)),
+          option(AppThemeMode.auto, Icons.brightness_auto, AppStrings.get('auto', lang)),
         ],
       ),
     );
