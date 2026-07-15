@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
@@ -18,27 +21,27 @@ class SchoolDetailPage extends ConsumerWidget {
     return '$domain${school.image}'; // backend already returns "/uploads/<filename>"
   }
 
-  String _categoryLabel(String category) {
+  String _categoryLabel(String category, AppLanguage lang) {
     switch (category) {
       case 'international':
-        return 'International';
+        return AppStrings.get('international', lang);
       case 'public':
-        return 'Public';
+        return AppStrings.get('public', lang);
       case 'private':
-        return 'Private';
+        return AppStrings.get('private', lang);
       default:
         return category;
     }
   }
 
-  String _streamLabel(String stream) {
+  String _streamLabel(String stream, AppLanguage lang) {
     switch (stream) {
       case 'science':
-        return 'Science';
+        return AppStrings.get('science', lang);
       case 'management':
-        return 'Management';
+        return AppStrings.get('management', lang);
       case 'humanities':
-        return 'Humanities';
+        return AppStrings.get('humanities', lang);
       default:
         return stream;
     }
@@ -66,6 +69,7 @@ class SchoolDetailPage extends ConsumerWidget {
     final favouriteState = ref.watch(favouriteViewModelProvider);
     final isFavourite =
         school.id != null && favouriteState.isFavourite(school.id!);
+    final lang = ref.watch(localeViewModelProvider).language;
 
     return Scaffold(
       body: CustomScrollView(
@@ -92,7 +96,8 @@ class SchoolDetailPage extends ConsumerWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              errorMessage ?? 'Could not update favourite',
+                              errorMessage ??
+                                  AppStrings.get('couldNotUpdateFavourite', lang),
                             ),
                           ),
                         );
@@ -175,7 +180,7 @@ class SchoolDetailPage extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          _categoryLabel(school.category),
+                          _categoryLabel(school.category, lang),
                           style: const TextStyle(
                             color: Colors.blue,
                             fontWeight: FontWeight.w600,
@@ -185,7 +190,7 @@ class SchoolDetailPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'Rs ${_formatFees(school.fees)}/year',
+                        'Rs ${_formatFees(school.fees)}${AppStrings.get('perYear', lang)}',
                         style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
@@ -199,9 +204,9 @@ class SchoolDetailPage extends ConsumerWidget {
 
                   // STREAMS OFFERED
                   if (school.streamsOffered.isNotEmpty) ...[
-                    const Text(
-                      'Streams offered',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('streamsOffered', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -213,7 +218,7 @@ class SchoolDetailPage extends ConsumerWidget {
                       children: school.streamsOffered
                           .map(
                             (stream) => Chip(
-                              label: Text(_streamLabel(stream)),
+                              label: Text(_streamLabel(stream, lang)),
                               backgroundColor: Colors.purple.shade50,
                               labelStyle: TextStyle(
                                 color: Colors.purple.shade700,
@@ -229,9 +234,9 @@ class SchoolDetailPage extends ConsumerWidget {
                   // DESCRIPTION
                   if (school.description != null &&
                       school.description!.isNotEmpty) ...[
-                    const Text(
-                      'About',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('about', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -250,9 +255,9 @@ class SchoolDetailPage extends ConsumerWidget {
 
                   // FACILITIES
                   if (school.facilities.isNotEmpty) ...[
-                    const Text(
-                      'Facilities',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('facilities', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -301,9 +306,9 @@ class SchoolDetailPage extends ConsumerWidget {
                   if (school.contactPhone != null ||
                       school.contactEmail != null ||
                       school.contactWebsite != null) ...[
-                    const Text(
-                      'Contact',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('contact', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
