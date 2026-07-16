@@ -40,4 +40,7 @@ class ApiEndpoints {
 
   // Notification endpoints
   static const String notifications = '/notifications';
+
+  // Review endpoints
+  static const String reviews = '/reviews';
 }
