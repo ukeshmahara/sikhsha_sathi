@@ -7,6 +7,7 @@ import 'package:sikhsha_sathi/app/locale/locale_state.dart';
 import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/review/presentation/widgets/review_section.dart';
 import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
 
 class SchoolDetailPage extends ConsumerWidget {
@@ -324,6 +325,11 @@ class SchoolDetailPage extends ConsumerWidget {
                         school.contactWebsite!.isNotEmpty)
                       _contactRow(context, Icons.language, school.contactWebsite!),
                   ],
+
+                  const SizedBox(height: 24),
+
+                  // REVIEWS & RATINGS
+                  if (school.id != null) ReviewSection(schoolId: school.id!),
                 ],
               ),
             ),
