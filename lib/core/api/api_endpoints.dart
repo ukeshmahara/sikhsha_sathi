@@ -43,4 +43,7 @@ class ApiEndpoints {
 
   // Review endpoints
   static const String reviews = '/reviews';
+
+  // Recommendation endpoint
+  static const String recommendations = '/recommendations';
 }
