@@ -11,6 +11,7 @@ import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favouri
 import 'package:sikhsha_sathi/features/notification/presentation/pages/notification_page.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/view_model/notification_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
+import 'package:sikhsha_sathi/features/recommendation/presentation/pages/recommendation_form_page.dart';
 import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
 import 'package:sikhsha_sathi/features/school/presentation/state/school_state.dart';
 import 'package:sikhsha_sathi/features/school/presentation/view_model/school_view_model.dart';
@@ -176,8 +177,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     required String title,
     required String subtitle,
     required Color textColor,
+    VoidCallback? onTap,
   }) {
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.all(14),
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
@@ -219,6 +223,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
           Icon(Icons.chevron_right, size: 18, color: textColor),
         ],
       ),
+    ),
     );
   }
 
@@ -450,6 +455,15 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           subtitle:
                               AppStrings.get('aiRecommendationSubtitle', lang),
                           textColor: const Color(0xFF3C3489),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const RecommendationFormPage(),
+                              ),
+                            );
+                          },
                         ),
 
                         // AI CHATBOT BANNER
@@ -460,6 +474,13 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           title: AppStrings.get('aiChatbotTitle', lang),
                           subtitle: AppStrings.get('aiChatbotSubtitle', lang),
                           textColor: const Color(0xFF0C447C),
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('AI chatbot is coming soon'),
+                              ),
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 12),
