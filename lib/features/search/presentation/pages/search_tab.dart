@@ -44,8 +44,6 @@ class _SearchTabState extends ConsumerState<SearchTab> {
     {'value': 'name_asc', 'label': 'Name A-Z'},
   ];
 
-  // matches the highest fee your seed/admin-added schools would realistically
-  // have — adjust if your real data goes higher
   static const double _maxPossibleFee = 2000000;
 
   String _categoryLabel(String value) {
@@ -84,8 +82,6 @@ class _SearchTabState extends ConsumerState<SearchTab> {
 
             return StatefulBuilder(
               builder: (context, setSheetState) {
-                // local slider state so dragging doesn't fire a search on
-                // every pixel — only commits when the user releases the thumb
                 RangeValues currentRange = RangeValues(
                   searchState.minFee ?? 0,
                   searchState.maxFee ?? _maxPossibleFee,
@@ -185,8 +181,6 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                           }).toList(),
                         ),
                         const SizedBox(height: 20),
-
-                        // FEE RANGE
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -223,7 +217,6 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                             });
                           },
                           onChangeEnd: (values) {
-                            // only fire the search once the user releases the thumb
                             final isFullRange =
                                 values.start == 0 && values.end == _maxPossibleFee;
 
@@ -233,10 +226,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                                 );
                           },
                         ),
-
                         const SizedBox(height: 16),
-
-                        // SORT
                         Text(
                           'Sort by',
                           style: TextStyle(fontSize: 12, color: context.appTextSecondary),
@@ -275,7 +265,6 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                             );
                           }).toList(),
                         ),
-
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
@@ -313,12 +302,18 @@ class _SearchTabState extends ConsumerState<SearchTab> {
     return Scaffold(
       backgroundColor: context.appBackground,
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                MediaQuery.of(context).padding.top + 14,
+                16,
+                14,
+              ),
               color: _kPrimaryBlue,
               child: Container(
                 padding: const EdgeInsets.all(4),
@@ -374,7 +369,6 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // FILTER ROW
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -440,10 +434,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 14),
-
-                    // BODY — initial / loading / error / empty / results
                     _buildBody(searchState),
                   ],
                 ),

@@ -329,12 +329,18 @@ class CompareTab extends ConsumerWidget {
     return Scaffold(
       backgroundColor: context.appBackground,
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.of(context).padding.top + 16,
+                20,
+                18,
+              ),
               color: _kPrimaryBlue,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

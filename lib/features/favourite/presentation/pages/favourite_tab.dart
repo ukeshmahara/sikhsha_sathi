@@ -83,16 +83,19 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
     final lang = ref.watch(localeViewModelProvider).language;
 
     return SafeArea(
+      top: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
-            decoration: BoxDecoration(
-              color: context.appSurface,
-              border: Border(
-                bottom: BorderSide(color: context.appBorder),
-              ),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              MediaQuery.of(context).padding.top + 20,
+              20,
+              14,
+            ),
+            decoration: const BoxDecoration(
+              color: Color(0xFF185FA5),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,17 +105,17 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                   children: [
                     Text(
                       AppStrings.get('favourites', lang),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w600,
-                        color: context.appTextPrimary,
+                        color: Colors.white,
                       ),
                     ),
                     Container(
                       padding:
                           const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFDEBEC),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
@@ -121,7 +124,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                           const Icon(
                             Icons.favorite,
                             size: 13,
-                            color: Color(0xFFA32D2D),
+                            color: Colors.white,
                           ),
                           const SizedBox(width: 5),
                           Text(
@@ -129,7 +132,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFFA32D2D),
+                              color: Colors.white,
                             ),
                           ),
                         ],
@@ -142,7 +145,7 @@ class _FavouriteTabState extends ConsumerState<FavouriteTab> {
                   AppStrings.get('schoolsSavedForQuickAccess', lang),
                   style: TextStyle(
                     fontSize: 13,
-                    color: context.appTextSecondary,
+                    color: Colors.white.withValues(alpha: 0.75),
                   ),
                 ),
               ],
