@@ -7,15 +7,18 @@ import 'package:sikhsha_sathi/app/locale/app_strings.dart';
 import 'package:sikhsha_sathi/app/locale/locale_state.dart';
 import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
+import 'package:sikhsha_sathi/features/chatbot/presentation/pages/chatbot_page.dart';
+import 'package:sikhsha_sathi/features/dashboard/presentation/providers/bottom_nav_provider.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/pages/notification_page.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/view_model/notification_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
 import 'package:sikhsha_sathi/features/recommendation/presentation/pages/recommendation_form_page.dart';
+import 'package:sikhsha_sathi/features/review/presentation/pages/top_rated_schools_page.dart';
+import 'package:sikhsha_sathi/features/review/presentation/providers/top_rated_schools_provider.dart';
 import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
-import 'package:sikhsha_sathi/features/school/presentation/state/school_state.dart';
 import 'package:sikhsha_sathi/features/school/presentation/view_model/school_view_model.dart';
-import 'package:sikhsha_sathi/features/school/presentation/widgets/school_card.dart';
+import 'package:sikhsha_sathi/features/search/presentation/view_model/search_view_model.dart';
 
 const Color _kPrimaryBlue = Color(0xFF185FA5);
 
@@ -118,6 +121,14 @@ class _HomeTabState extends ConsumerState<HomeTab> {
           ? const Icon(Icons.person, color: Colors.white, size: 18)
           : null,
     );
+  }
+
+  // Sets the tapped category on SearchViewModel then switches the bottom
+  // nav to the Search tab (index 1) so the user lands there with that
+  // filter already applied, instead of Home showing a second inline list.
+  void _goToSearchWithCategory(WidgetRef ref, String category) {
+    ref.read(searchViewModelProvider.notifier).setCategory(category);
+    ref.read(bottomNavProvider.notifier).state = 1;
   }
 
   Widget _buildCategoryChip({
@@ -234,7 +245,18 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
     return Scaffold(
       backgroundColor: context.appBackground,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: _kPrimaryBlue,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatbotPage()),
+          );
+        },
+        child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+      ),
       body: SafeArea(
+        top: false,
         child: RefreshIndicator(
           onRefresh: () async {
             await ref
@@ -246,9 +268,17 @@ class _HomeTabState extends ConsumerState<HomeTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // BLUE HEADER
+                // BLUE HEADER — padding.top pushes content below the status
+                // bar while the blue color itself still fills all the way
+                // to the true top edge (matches the status bar icons set to
+                // light/white in main.dart via SystemUiOverlayStyle)
                 Container(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 44),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    MediaQuery.of(context).padding.top + 14,
+                    20,
+                    44,
+                  ),
                   decoration: const BoxDecoration(
                     color: _kPrimaryBlue,
                   ),
@@ -297,8 +327,14 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // FLOATING SEARCH BAR
-                        Container(
+                        // FLOATING SEARCH BAR — tap-only, navigates to Search
+                        // tab rather than searching inline on Home (keeps
+                        // all real searching/filtering in one place)
+                        GestureDetector(
+                          onTap: () {
+                            ref.read(bottomNavProvider.notifier).state = 1;
+                          },
+                          child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
                             color: context.appSurface,
@@ -314,30 +350,27 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           child: Row(
                             children: [
                               Expanded(
-                                child: TextField(
-                                  onSubmitted: (value) {
-                                    ref
-                                        .read(schoolViewModelProvider.notifier)
-                                        .search(value);
-                                  },
-                                  decoration: InputDecoration(
-                                    hintText:
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 10,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.search,
+                                        size: 20,
+                                        color: context.appTextSecondary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
                                         AppStrings.get('searchSchoolKeyword', lang),
-                                    hintStyle: TextStyle(
-                                      fontSize: 13,
-                                      color: context.appTextSecondary,
-                                    ),
-                                    prefixIcon: Icon(
-                                      Icons.search,
-                                      size: 20,
-                                      color: context.appTextSecondary,
-                                    ),
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    contentPadding:
-                                        const EdgeInsets.symmetric(
-                                      vertical: 10,
-                                    ),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: context.appTextSecondary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -355,6 +388,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                 ),
                               ),
                             ],
+                          ),
                           ),
                         ),
 
@@ -381,7 +415,9 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
                         const SizedBox(height: 14),
 
-                        // CATEGORY CHIPS — scrollable, no "All" chip
+                        // CATEGORY CHIPS — pure navigation shortcuts to
+                        // Search tab, no chip is ever shown as "selected"
+                        // here since Home itself no longer filters anything
                         Scrollbar(
                           thumbVisibility: true,
                           trackVisibility: true,
@@ -398,22 +434,22 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                   count: schoolState.categoryCounts[
                                           'international'] ??
                                       0,
-                                  isSelected: schoolState.selectedCategory ==
-                                      'international',
-                                  onTap: () => ref
-                                      .read(schoolViewModelProvider.notifier)
-                                      .selectCategory('international'),
+                                  isSelected: false,
+                                  onTap: () => _goToSearchWithCategory(
+                                    ref,
+                                    'international',
+                                  ),
                                 ),
                                 _buildCategoryChip(
                                   icon: Icons.account_balance,
                                   label: AppStrings.get('public', lang),
                                   count: schoolState.categoryCounts['public'] ??
                                       0,
-                                  isSelected:
-                                      schoolState.selectedCategory == 'public',
-                                  onTap: () => ref
-                                      .read(schoolViewModelProvider.notifier)
-                                      .selectCategory('public'),
+                                  isSelected: false,
+                                  onTap: () => _goToSearchWithCategory(
+                                    ref,
+                                    'public',
+                                  ),
                                 ),
                                 _buildCategoryChip(
                                   icon: Icons.business,
@@ -421,11 +457,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                   count:
                                       schoolState.categoryCounts['private'] ??
                                           0,
-                                  isSelected: schoolState.selectedCategory ==
-                                      'private',
-                                  onTap: () => ref
-                                      .read(schoolViewModelProvider.notifier)
-                                      .selectCategory('private'),
+                                  isSelected: false,
+                                  onTap: () => _goToSearchWithCategory(
+                                    ref,
+                                    'private',
+                                  ),
                                 ),
                                 _buildCategoryChip(
                                   icon: Icons.monetization_on,
@@ -433,11 +469,11 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                                   count: schoolState.categoryCounts[
                                           'budget_friendly'] ??
                                       0,
-                                  isSelected: schoolState.selectedCategory ==
-                                      'budget_friendly',
-                                  onTap: () => ref
-                                      .read(schoolViewModelProvider.notifier)
-                                      .selectCategory('budget_friendly'),
+                                  isSelected: false,
+                                  onTap: () => _goToSearchWithCategory(
+                                    ref,
+                                    'budget_friendly',
+                                  ),
                                 ),
                               ],
                             ),
@@ -466,74 +502,56 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                           },
                         ),
 
-                        // AI CHATBOT BANNER
-                        _buildAiBanner(
-                          bg: const Color(0xFFE6F1FB),
-                          iconBg: const Color(0xFF378ADD),
-                          icon: Icons.chat_bubble_outline,
-                          title: AppStrings.get('aiChatbotTitle', lang),
-                          subtitle: AppStrings.get('aiChatbotSubtitle', lang),
-                          textColor: const Color(0xFF0C447C),
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('AI chatbot is coming soon'),
-                              ),
-                            );
-                          },
-                        ),
-
                         const SizedBox(height: 12),
 
-                        // SCHOOL LIST HEADER
+                        // TOP RATED SCHOOLS HEADER
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              schoolState.selectedCategory.isEmpty
-                                  ? AppStrings.get('allSchools', lang)
-                                  : AppStrings.get('filteredSchools', lang),
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
+                            Row(
+                              children: const [
+                                Icon(
+                                  Icons.emoji_events_outlined,
+                                  size: 16,
+                                  color: Color(0xFF854F0B),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Top rated schools',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const TopRatedSchoolsPage(),
+                                  ),
+                                );
+                              },
+                              child: const Text(
+                                'See all',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: _kPrimaryBlue,
+                                ),
                               ),
                             ),
-                            if (schoolState.selectedCategory.isNotEmpty)
-                              TextButton(
-                                onPressed: () => ref
-                                    .read(schoolViewModelProvider.notifier)
-                                    .selectCategory(
-                                      schoolState.selectedCategory,
-                                    ),
-                                child: Text(
-                                  AppStrings.get('clearFilter', lang),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: _kPrimaryBlue,
-                                  ),
-                                ),
-                              )
-                            else
-                              GestureDetector(
-                                onTap: () {
-                                  // TODO: navigate to Search tab with full list once built
-                                },
-                                child: Text(
-                                  AppStrings.get('seeAll', lang),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: _kPrimaryBlue,
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
 
                         const SizedBox(height: 12),
 
-                        // SCHOOL LIST — full-width vertical cards
-                        _buildSchoolList(schoolState, lang),
+                        // TOP RATED SCHOOLS LIST — small preview, full list
+                        // lives on TopRatedSchoolsPage via "See all"
+                        _buildTopRatedSchools(ref),
                       ],
                     ),
                   ),
@@ -546,59 +564,145 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     );
   }
 
-  Widget _buildSchoolList(SchoolState schoolState, AppLanguage lang) {
-    if (schoolState.status == SchoolStatus.loading &&
-        schoolState.schools.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 60),
+  Widget _buildTopRatedSchools(WidgetRef ref) {
+    final topRatedAsync = ref.watch(topRatedSchoolsProvider(3));
+
+    return topRatedAsync.when(
+      loading: () => const Padding(
+        padding: EdgeInsets.symmetric(vertical: 40),
         child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    if (schoolState.status == SchoolStatus.error &&
-        schoolState.schools.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Column(
-          children: [
-            Text(
-              schoolState.errorMessage ??
-                  AppStrings.get('somethingWentWrong', lang),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => ref
-                  .read(schoolViewModelProvider.notifier)
-                  .loadSchools(reset: true),
-              child: Text(AppStrings.get('retry', lang)),
-            ),
-          ],
+      ),
+      error: (error, stackTrace) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Center(
+          child: Text(
+            'Could not load top rated schools',
+            style: TextStyle(color: context.appTextSecondary, fontSize: 13),
+          ),
         ),
-      );
-    }
+      ),
+      data: (schools) {
+        if (schools.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text(
+                'No ratings yet — be the first to review a school!',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: context.appTextSecondary, fontSize: 13),
+              ),
+            ),
+          );
+        }
 
-    if (schoolState.schools.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Center(child: Text(AppStrings.get('noSchoolsFound', lang))),
-      );
-    }
+        return Column(
+          children: schools.map((entry) {
+            final school = entry.school;
 
-    return Column(
-      children: schoolState.schools.map((school) {
-        return SchoolCard(
-          school: school,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => SchoolDetailPage(school: school),
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SchoolDetailPage(school: school),
+                  ),
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: context.appSurface,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: school.image != null && school.image!.isNotEmpty
+                          ? Image.network(
+                              '${ApiEndpoints.baseUrl.replaceAll('/api/v1', '')}${school.image}',
+                              width: 60,
+                              height: 60,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _topRatedPlaceholder(),
+                            )
+                          : _topRatedPlaceholder(),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            school.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.star,
+                                  size: 13, color: Color(0xFFEF9F27)),
+                              const SizedBox(width: 3),
+                              Text(
+                                entry.average.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${entry.count} review${entry.count == 1 ? '' : 's'})',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: context.appTextSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Rs ${school.fees.toStringAsFixed(0)}/yr',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _kPrimaryBlue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
-          },
+          }).toList(),
         );
-      }).toList(),
+      },
+    );
+  }
+
+  Widget _topRatedPlaceholder() {
+    return Container(
+      width: 60,
+      height: 60,
+      color: Colors.grey.shade200,
+      child: Icon(Icons.school, size: 24, color: Colors.grey.shade400),
     );
   }
 }
