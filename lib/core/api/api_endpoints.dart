@@ -46,4 +46,10 @@ class ApiEndpoints {
 
   // Recommendation endpoint
   static const String recommendations = '/recommendations';
+
+  // Inquiry endpoints
+  static const String inquiries = '/inquiries';
+
+  // Chatbot endpoint
+  static const String chatbot = '/chatbot';
 }
