@@ -7,6 +7,7 @@ import 'package:sikhsha_sathi/app/locale/locale_state.dart';
 import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/inquiry/presentation/pages/inquiry_page.dart';
 import 'package:sikhsha_sathi/features/review/presentation/widgets/review_section.dart';
 import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
 
@@ -325,6 +326,29 @@ class SchoolDetailPage extends ConsumerWidget {
                         school.contactWebsite!.isNotEmpty)
                       _contactRow(context, Icons.language, school.contactWebsite!),
                   ],
+
+                  if (school.id != null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => InquiryPage(school: school),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.help_outline, size: 18),
+                        label: const Text('Ask this school'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
 
                   const SizedBox(height: 24),
 
