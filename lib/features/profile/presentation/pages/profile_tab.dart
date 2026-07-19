@@ -17,6 +17,9 @@ import 'package:sikhsha_sathi/app/theme/theme_state.dart';
 import 'package:sikhsha_sathi/app/theme/theme_view_model.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/help_support_page.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/privacy_policy_page.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/terms_of_service_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/state/profile_state.dart';
 import 'package:sikhsha_sathi/features/school/presentation/view_model/school_view_model.dart';
@@ -35,6 +38,14 @@ class _ProfileTabState
 
   final ImagePicker _imagePicker =
       ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(profileViewModelProvider.notifier).refreshProfile();
+    });
+  }
 
   Future<Permission>
       _getGalleryPermission() async {
@@ -259,13 +270,13 @@ class _ProfileTabState
             Container(
               width: double.infinity,
               padding:
-                  const EdgeInsets.only(
-                top: 60,
+                  EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 30,
                 bottom: 20,
               ),
               decoration:
                   const BoxDecoration(
-                color: Colors.blue,
+                color: Color(0xFF185FA5),
               ),
               child: Center(
                 child: Text(
@@ -452,6 +463,66 @@ class _ProfileTabState
             const SizedBox(height: 10),
 
             Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Support',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: context.appTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _supportRow(
+                    context,
+                    icon: Icons.help_outline,
+                    label: 'Help & Support',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HelpSupportPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  _supportRow(
+                    context,
+                    icon: Icons.privacy_tip_outlined,
+                    label: 'Privacy Policy',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyPolicyPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  _supportRow(
+                    context,
+                    icon: Icons.description_outlined,
+                    label: 'Terms of Service',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TermsOfServicePage(),
+                        ),
+                      );
+                    },
+                    isLast: true,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Padding(
               padding:
                   const EdgeInsets.symmetric(
                 horizontal: 20,
@@ -564,6 +635,52 @@ class _ProfileTabState
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _supportRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return Material(
+      color: context.appSurface,
+      borderRadius: isLast
+          ? const BorderRadius.vertical(bottom: Radius.circular(12))
+          : BorderRadius.zero,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            border: isLast
+                ? null
+                : Border(bottom: BorderSide(color: context.appBorder)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: context.appTextSecondary),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.appTextPrimary,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: context.appTextSecondary,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
