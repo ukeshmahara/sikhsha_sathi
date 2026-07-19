@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
+
 class ReviewEntity extends Equatable {
   final String id;
   final String studentId;
@@ -46,4 +48,19 @@ class SchoolReviewsResult extends Equatable {
 
   @override
   List<Object?> get props => [reviews, summary];
+}
+
+class TopRatedSchool extends Equatable {
+  final SchoolEntity school;
+  final double average;
+  final int count;
+
+  const TopRatedSchool({
+    required this.school,
+    required this.average,
+    required this.count,
+  });
+
+  @override
+  List<Object?> get props => [school, average, count];
 }

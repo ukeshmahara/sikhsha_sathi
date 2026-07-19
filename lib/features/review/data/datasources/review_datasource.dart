@@ -17,4 +17,6 @@ abstract interface class IReviewRemoteDataSource {
   });
 
   Future<bool> deleteReview(String reviewId);
+
+  Future<List<TopRatedSchoolApiModel>> getTopRatedSchools({int limit = 10});
 }

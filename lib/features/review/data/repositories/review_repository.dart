@@ -155,4 +155,29 @@ class ReviewRepository implements IReviewRepository {
       return Left(ApiFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, List<TopRatedSchool>>> getTopRatedSchools({
+    int limit = 10,
+  }) async {
+    try {
+      final result = await _guard(
+        () => _remoteDatasource.getTopRatedSchools(limit: limit),
+      );
+
+      return Right(result.map((m) => m.toEntity()).toList());
+    } on ApiFailure catch (f) {
+      return Left(f);
+    } on DioException catch (e) {
+      return Left(
+        ApiFailure(
+          message: e.response?.data?["message"] ??
+              "Failed to fetch top rated schools",
+          statusCode: e.response?.statusCode,
+        ),
+      );
+    } catch (e) {
+      return Left(ApiFailure(message: e.toString()));
+    }
+  }
 }

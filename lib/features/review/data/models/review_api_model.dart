@@ -1,4 +1,5 @@
 import 'package:sikhsha_sathi/features/review/domain/entities/review_entity.dart';
+import 'package:sikhsha_sathi/features/school/data/models/school_api_model.dart';
 
 class ReviewApiModel {
   final String id;
@@ -53,6 +54,34 @@ class ReviewApiModel {
       createdAt: json["createdAt"] != null
           ? DateTime.parse(json["createdAt"])
           : DateTime.now(),
+    );
+  }
+}
+
+class TopRatedSchoolApiModel {
+  final SchoolApiModel school;
+  final double average;
+  final int count;
+
+  TopRatedSchoolApiModel({
+    required this.school,
+    required this.average,
+    required this.count,
+  });
+
+  TopRatedSchool toEntity() {
+    return TopRatedSchool(
+      school: school.toEntity(),
+      average: average,
+      count: count,
+    );
+  }
+
+  factory TopRatedSchoolApiModel.fromJson(Map<String, dynamic> json) {
+    return TopRatedSchoolApiModel(
+      school: SchoolApiModel.fromJson(json["school"]),
+      average: (json["average"] as num?)?.toDouble() ?? 0,
+      count: (json["count"] as num?)?.toInt() ?? 0,
     );
   }
 }

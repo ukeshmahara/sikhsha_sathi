@@ -82,4 +82,17 @@ class ReviewRemoteDatasource implements IReviewRemoteDataSource {
 
     return response.data["success"] == true;
   }
+
+  @override
+  Future<List<TopRatedSchoolApiModel>> getTopRatedSchools({
+    int limit = 10,
+  }) async {
+    final response = await apiClient.get(
+      '${ApiEndpoints.reviews}/top-schools?limit=$limit',
+    );
+
+    final List<dynamic> data = response.data["data"] ?? [];
+
+    return data.map((j) => TopRatedSchoolApiModel.fromJson(j)).toList();
+  }
 }

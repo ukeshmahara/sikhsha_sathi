@@ -21,4 +21,8 @@ abstract interface class IReviewRepository {
   });
 
   Future<Either<Failure, bool>> deleteReview(String reviewId);
+
+  Future<Either<Failure, List<TopRatedSchool>>> getTopRatedSchools({
+    int limit = 10,
+  });
 }
