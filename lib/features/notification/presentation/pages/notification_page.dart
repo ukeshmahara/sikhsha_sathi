@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/state/notification_state.dart';
 import 'package:sikhsha_sathi/features/notification/presentation/view_model/notification_view_model.dart';
 
@@ -61,7 +62,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
     final notificationState = ref.watch(notificationViewModelProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: context.appBackground,
       appBar: AppBar(
         backgroundColor: _kPrimaryBlue,
         foregroundColor: Colors.white,
@@ -116,21 +117,25 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: context.appSurfaceMuted,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.notifications_none,
                 size: 32,
-                color: Colors.grey.shade400,
+                color: context.appTextSecondary,
               ),
             ),
           ),
           const SizedBox(height: 16),
-          const Center(
+          Center(
             child: Text(
               'No notifications yet',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: context.appTextPrimary,
+              ),
             ),
           ),
         ],
@@ -148,7 +153,7 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
           margin: const EdgeInsets.only(bottom: 10),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.appSurface,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
@@ -181,20 +186,21 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
                   children: [
                     Text(
                       notification.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
+                        color: context.appTextPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       notification.message,
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                      style: TextStyle(fontSize: 12, color: context.appTextSecondary),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       _timeAgo(notification.createdAt),
-                      style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
+                      style: TextStyle(fontSize: 10, color: context.appTextMuted),
                     ),
                   ],
                 ),

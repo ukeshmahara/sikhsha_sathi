@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'login_view.dart';
 import '../state/auth_state.dart';
 import '../view_model/auth_view_model.dart';
@@ -119,7 +120,7 @@ class _SignupViewState
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.appBackground,
 
       body: SafeArea(
         child: SingleChildScrollView(

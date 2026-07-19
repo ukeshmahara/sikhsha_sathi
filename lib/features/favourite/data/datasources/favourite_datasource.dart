@@ -11,6 +11,8 @@ abstract interface class IFavouriteLocalDataSource {
   Future<void> removeCachedFavourite(String schoolId);
 
   bool isFavouriteCached(String schoolId);
+
+  Future<void> clearCache();
 }
 
 abstract interface class IFavouriteRemoteDataSource {

@@ -30,6 +30,9 @@ class SchoolRepository implements ISchoolRepository {
     String search = '',
     String category = '',
     String stream = '',
+    double? minFee,
+    double? maxFee,
+    String sort = '',
   }) async {
     try {
       final result = await remoteDataSource.getSchools(
@@ -38,6 +41,9 @@ class SchoolRepository implements ISchoolRepository {
         search: search,
         category: category,
         stream: stream,
+        minFee: minFee,
+        maxFee: maxFee,
+        sort: sort,
       );
 
       return Right(

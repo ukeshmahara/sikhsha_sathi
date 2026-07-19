@@ -7,10 +7,22 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
+import 'package:sikhsha_sathi/app/theme/theme_state.dart';
+import 'package:sikhsha_sathi/app/theme/theme_view_model.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
+import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/help_support_page.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/privacy_policy_page.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/terms_of_service_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/view_model/profile_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/state/profile_state.dart';
+import 'package:sikhsha_sathi/features/school/presentation/view_model/school_view_model.dart';
 
 class ProfileTab extends ConsumerStatefulWidget {
   const ProfileTab({super.key});
@@ -26,6 +38,14 @@ class _ProfileTabState
 
   final ImagePicker _imagePicker =
       ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(profileViewModelProvider.notifier).refreshProfile();
+    });
+  }
 
   Future<Permission>
       _getGalleryPermission() async {
@@ -227,39 +247,41 @@ class _ProfileTabState
     final profileState =
         ref.watch(profileViewModelProvider);
 
+    final lang = ref.watch(localeViewModelProvider).language;
+
     final fullName =
         session.getFullName() ??
-            "Unknown User";
+            AppStrings.get('unknownUser', lang);
 
     final email =
         session.getEmail() ??
-            "No Email";
+            AppStrings.get('noEmail', lang);
 
     final phone =
         session.getPhoneNumber() ??
-            "No Phone";
+            AppStrings.get('noPhone', lang);
 
     return Scaffold(
       backgroundColor:
-          Colors.grey.shade100,
+          context.appBackground,
       body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
               width: double.infinity,
               padding:
-                  const EdgeInsets.only(
-                top: 60,
+                  EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 30,
                 bottom: 20,
               ),
               decoration:
                   const BoxDecoration(
-                color: Colors.blue,
+                color: Color(0xFF185FA5),
               ),
-              child: const Center(
+              child: Center(
                 child: Text(
-                  "Profile",
-                  style: TextStyle(
+                  AppStrings.get('profile', lang),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
                     fontWeight:
@@ -279,7 +301,7 @@ class _ProfileTabState
                   child: CircleAvatar(
                     radius: 60,
                     backgroundColor:
-                        Colors.white,
+                        context.appSurface,
                     backgroundImage:
                         _selectedImage != null
                             ? FileImage(
@@ -293,11 +315,11 @@ class _ProfileTabState
                     child:
                         _selectedImage == null &&
                                 savedProfilePictureUrl == null
-                            ? const Icon(
+                            ? Icon(
                                 Icons.person,
                                 size: 80,
                                 color:
-                                    Colors.grey,
+                                    context.appTextSecondary,
                               )
                             : null,
                   ),
@@ -363,7 +385,7 @@ class _ProfileTabState
               email,
               style: TextStyle(
                 color:
-                    Colors.grey.shade700,
+                    context.appTextSecondary,
                 fontSize: 18,
               ),
             ),
@@ -372,23 +394,53 @@ class _ProfileTabState
 
             _profileTile(
               Icons.person_outline,
-              "Full Name",
+              AppStrings.get('fullName', lang),
               fullName,
             ),
 
             _profileTile(
               Icons.email_outlined,
-              "Email",
+              AppStrings.get('email', lang),
               email,
             ),
 
             _profileTile(
               Icons.phone_outlined,
-              "Phone Number",
+              AppStrings.get('phoneNumber', lang),
               phone,
             ),
 
             const SizedBox(height: 20),
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: _buildThemeToggle(ref, lang),
+            ),
+
+            const SizedBox(height: 10),
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: _buildBiometricToggle(context, ref, lang),
+            ),
+
+            const SizedBox(height: 10),
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: _buildLanguageToggle(context, ref, lang),
+            ),
+
+            const SizedBox(height: 10),
 
             Padding(
               padding:
@@ -401,10 +453,70 @@ class _ProfileTabState
                   onPressed: () {},
                   icon:
                       const Icon(Icons.edit),
-                  label: const Text(
-                    "Edit Profile",
+                  label: Text(
+                    AppStrings.get('editProfile', lang),
                   ),
                 ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Support',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: context.appTextSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _supportRow(
+                    context,
+                    icon: Icons.help_outline,
+                    label: 'Help & Support',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HelpSupportPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  _supportRow(
+                    context,
+                    icon: Icons.privacy_tip_outlined,
+                    label: 'Privacy Policy',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyPolicyPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  _supportRow(
+                    context,
+                    icon: Icons.description_outlined,
+                    label: 'Terms of Service',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TermsOfServicePage(),
+                        ),
+                      );
+                    },
+                    isLast: true,
+                  ),
+                ],
               ),
             ),
 
@@ -425,8 +537,20 @@ class _ProfileTabState
                         Colors.red,
                   ),
                   onPressed: () async {
+                    // clear the favourite Hive cache and in-memory state so
+                    // the next user on this device doesn't see this user's
+                    // favourites, even without a full app restart
+                    await ref
+                        .read(favouriteViewModelProvider.notifier)
+                        .clearCache();
+
                     await session
                         .clearSession();
+
+                    // force schools and profile to reload fresh next time
+                    // too, rather than reusing stale in-memory state
+                    ref.invalidate(schoolViewModelProvider);
+                    ref.invalidate(profileViewModelProvider);
 
                     if (context.mounted) {
                       Navigator.pushAndRemoveUntil(
@@ -442,8 +566,8 @@ class _ProfileTabState
                   icon: const Icon(
                     Icons.logout,
                   ),
-                  label: const Text(
-                    "Logout",
+                  label: Text(
+                    AppStrings.get('logout', lang),
                   ),
                 ),
               ),
@@ -470,7 +594,7 @@ class _ProfileTabState
       padding:
           const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appSurface,
         borderRadius:
             BorderRadius.circular(16),
       ),
@@ -491,8 +615,8 @@ class _ProfileTabState
                 Text(
                   title,
                   style:
-                      const TextStyle(
-                    color: Colors.grey,
+                      TextStyle(
+                    color: context.appTextSecondary,
                   ),
                 ),
                 const SizedBox(
@@ -510,6 +634,229 @@ class _ProfileTabState
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _supportRow(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isLast = false,
+  }) {
+    return Material(
+      color: context.appSurface,
+      borderRadius: isLast
+          ? const BorderRadius.vertical(bottom: Radius.circular(12))
+          : BorderRadius.zero,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            border: isLast
+                ? null
+                : Border(bottom: BorderSide(color: context.appBorder)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: context.appTextSecondary),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: context.appTextPrimary,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                size: 18,
+                color: context.appTextSecondary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageToggle(
+    BuildContext context,
+    WidgetRef ref,
+    AppLanguage lang,
+  ) {
+    final isNepali = lang == AppLanguage.nepali;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.appSurface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.language,
+            color: context.isDark ? Colors.blue.shade200 : Colors.blue,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              AppStrings.get('language', lang),
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: context.appTextPrimary,
+              ),
+            ),
+          ),
+          Text(
+            isNepali ? 'ने' : 'EN',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: context.appTextSecondary,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Switch(
+            value: isNepali,
+            onChanged: (value) {
+              ref.read(localeViewModelProvider.notifier).setLanguage(
+                    value ? AppLanguage.nepali : AppLanguage.english,
+                  );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBiometricToggle(BuildContext context, WidgetRef ref, AppLanguage lang) {
+    final session = ref.read(userSessionServiceProvider);
+    final isEnabled = session.isBiometricLoginEnabled();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.appSurface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.fingerprint, color: context.isDark ? Colors.blue.shade200 : Colors.blue),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.get('fingerprintLogin', lang),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: context.appTextPrimary,
+                  ),
+                ),
+                Text(
+                  AppStrings.get('unlockWithFingerprint', lang),
+                  style: TextStyle(fontSize: 11, color: context.appTextSecondary),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: isEnabled,
+            onChanged: (value) async {
+              if (value) {
+                // require a successful scan before turning this on, so we
+                // know the device's biometrics actually work for this user
+                final biometricService = ref.read(biometricServiceProvider);
+                final canUse = await biometricService.canCheckBiometrics();
+
+                if (!canUse) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'No fingerprint set up on this device. Add one in your phone settings first.',
+                        ),
+                      ),
+                    );
+                  }
+                  return;
+                }
+
+                final confirmed = await biometricService.authenticate(
+                  reason: 'Confirm your fingerprint to enable fingerprint login',
+                );
+
+                if (!confirmed) return;
+              }
+
+              await session.setBiometricLoginEnabled(value);
+              setState(() {});
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeToggle(WidgetRef ref, AppLanguage lang) {
+    final themeState = ref.watch(themeViewModelProvider);
+
+    Widget option(AppThemeMode mode, IconData icon, String label) {
+      final isSelected = themeState.mode == mode;
+
+      return Expanded(
+        child: GestureDetector(
+          onTap: () =>
+              ref.read(themeViewModelProvider.notifier).setMode(mode),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.blue : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isSelected ? Colors.white : context.appTextSecondary,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isSelected ? Colors.white : context.appTextSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: context.appSurfaceMuted,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          option(AppThemeMode.light, Icons.light_mode, AppStrings.get('light', lang)),
+          option(AppThemeMode.dark, Icons.dark_mode, AppStrings.get('dark', lang)),
+          option(AppThemeMode.auto, Icons.brightness_auto, AppStrings.get('auto', lang)),
         ],
       ),
     );

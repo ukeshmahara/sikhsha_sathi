@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/compare/presentation/state/compare_state.dart';
 import 'package:sikhsha_sathi/features/compare/presentation/view_model/compare_view_model.dart';
 import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
@@ -33,29 +37,29 @@ class CompareTab extends ConsumerWidget {
     }
   }
 
-  String _categoryLabel(String category) {
+  String _categoryLabel(String category, AppLanguage lang) {
     switch (category) {
       case 'international':
-        return 'International';
+        return AppStrings.get('international', lang);
       case 'public':
-        return 'Public';
+        return AppStrings.get('public', lang);
       case 'private':
-        return 'Private';
+        return AppStrings.get('private', lang);
       case 'budget_friendly':
-        return 'Budget friendly';
+        return AppStrings.get('budgetFriendly', lang);
       default:
         return category;
     }
   }
 
-  String _streamLabel(String stream) {
+  String _streamLabel(String stream, AppLanguage lang) {
     switch (stream) {
       case 'science':
-        return 'Science';
+        return AppStrings.get('science', lang);
       case 'management':
-        return 'Management';
+        return AppStrings.get('management', lang);
       case 'humanities':
-        return 'Humanities';
+        return AppStrings.get('humanities', lang);
       default:
         return stream;
     }
@@ -81,6 +85,7 @@ class CompareTab extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     bool isFirstSlot,
+    AppLanguage lang,
   ) {
     final schoolState = ref.read(schoolViewModelProvider);
     final compareState = ref.read(compareViewModelProvider);
@@ -93,7 +98,7 @@ class CompareTab extends ConsumerWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.appSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -110,16 +115,16 @@ class CompareTab extends ConsumerWidget {
 
             return Column(
               children: [
-                const Padding(
-                  padding: EdgeInsets.all(16),
+                Padding(
+                  padding: const EdgeInsets.all(16),
                   child: Text(
-                    'Select a school',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    AppStrings.get('selectASchool', lang),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ),
                 Expanded(
                   child: availableSchools.isEmpty
-                      ? const Center(child: Text('No schools available'))
+                      ? Center(child: Text(AppStrings.get('noSchoolsAvailable', lang)))
                       : ListView.builder(
                           controller: scrollController,
                           padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -138,10 +143,10 @@ class CompareTab extends ConsumerWidget {
                                         width: 48,
                                         height: 48,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) =>
-                                            _pickerPlaceholder(),
+                                        errorBuilder: (errorContext, error, stackTrace) =>
+                                            _pickerPlaceholder(context),
                                       )
-                                    : _pickerPlaceholder(),
+                                    : _pickerPlaceholder(context),
                               ),
                               title: Text(
                                 school.name,
@@ -178,12 +183,12 @@ class CompareTab extends ConsumerWidget {
     );
   }
 
-  Widget _pickerPlaceholder() {
+  Widget _pickerPlaceholder(BuildContext context) {
     return Container(
       width: 48,
       height: 48,
-      color: Colors.grey.shade200,
-      child: Icon(Icons.school, size: 20, color: Colors.grey.shade400),
+      color: context.appSurfaceMuted,
+      child: Icon(Icons.school, size: 20, color: context.appTextSecondary),
     );
   }
 
@@ -192,26 +197,29 @@ class CompareTab extends ConsumerWidget {
     required WidgetRef ref,
     required SchoolEntity? school,
     required bool isFirstSlot,
+    required AppLanguage lang,
   }) {
     if (school == null) {
       return GestureDetector(
-        onTap: () => _openSchoolPicker(context, ref, isFirstSlot),
+        onTap: () => _openSchoolPicker(context, ref, isFirstSlot, lang),
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey.shade400, width: 1.5),
+            color: context.appSurface,
+            border: Border.all(color: context.appBorder, width: 1.5),
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add, size: 20, color: Colors.grey.shade500),
+              Icon(Icons.add, size: 20, color: context.appTextSecondary),
               const SizedBox(height: 4),
               Text(
-                isFirstSlot ? 'Add first school' : 'Add second school',
+                isFirstSlot
+                    ? AppStrings.get('addFirstSchool', lang)
+                    : AppStrings.get('addSecondSchool', lang),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 11, color: context.appTextSecondary),
               ),
             ],
           ),
@@ -222,10 +230,10 @@ class CompareTab extends ConsumerWidget {
     final imageUrl = _imageUrl(school.image);
 
     return GestureDetector(
-      onTap: () => _openSchoolPicker(context, ref, isFirstSlot),
+      onTap: () => _openSchoolPicker(context, ref, isFirstSlot, lang),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.appSurface,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -246,10 +254,10 @@ class CompareTab extends ConsumerWidget {
                       height: 70,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _slotPlaceholder(),
+                      errorBuilder: (errorContext, error, stackTrace) =>
+                          _slotPlaceholder(context),
                     )
-                  : _slotPlaceholder(),
+                  : _slotPlaceholder(context),
             ),
             Padding(
               padding: const EdgeInsets.all(8),
@@ -266,22 +274,28 @@ class CompareTab extends ConsumerWidget {
     );
   }
 
-  Widget _slotPlaceholder() {
+  Widget _slotPlaceholder(BuildContext context) {
     return Container(
       height: 70,
       width: double.infinity,
-      color: Colors.grey.shade200,
-      child: Icon(Icons.school, size: 26, color: Colors.grey.shade400),
+      color: context.appSurfaceMuted,
+      child: Icon(Icons.school, size: 26, color: context.appTextSecondary),
     );
   }
 
-  Widget _buildRow(String label, Widget value1, Widget value2, {bool last = false}) {
+  Widget _buildRow(
+    BuildContext context,
+    String label,
+    Widget value1,
+    Widget value2, {
+    bool last = false,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         border: last
             ? null
-            : Border(bottom: BorderSide(color: Colors.grey.shade200)),
+            : Border(bottom: BorderSide(color: context.appBorder)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,7 +304,7 @@ class CompareTab extends ConsumerWidget {
             label.toUpperCase(),
             style: TextStyle(
               fontSize: 10,
-              color: Colors.grey.shade500,
+              color: context.appTextSecondary,
               letterSpacing: 0.3,
             ),
           ),
@@ -310,23 +324,30 @@ class CompareTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final compareState = ref.watch(compareViewModelProvider);
+    final lang = ref.watch(localeViewModelProvider).language;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: context.appBackground,
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.of(context).padding.top + 16,
+                20,
+                18,
+              ),
               color: _kPrimaryBlue,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Compare schools',
-                    style: TextStyle(
+                  Text(
+                    AppStrings.get('compareSchools', lang),
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -334,7 +355,7 @@ class CompareTab extends ConsumerWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Pick two schools to compare side by side',
+                    AppStrings.get('pickTwoSchools', lang),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.white.withValues(alpha: 0.75),
@@ -359,6 +380,7 @@ class CompareTab extends ConsumerWidget {
                             ref: ref,
                             school: compareState.school1,
                             isFirstSlot: true,
+                            lang: lang,
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -368,6 +390,7 @@ class CompareTab extends ConsumerWidget {
                             ref: ref,
                             school: compareState.school2,
                             isFirstSlot: false,
+                            lang: lang,
                           ),
                         ),
                       ],
@@ -377,7 +400,7 @@ class CompareTab extends ConsumerWidget {
 
                     // COMPARISON TABLE — only once both schools picked
                     if (compareState.isComplete) ...[
-                      _buildComparisonTable(compareState),
+                      _buildComparisonTable(context, compareState, lang),
                       const SizedBox(height: 14),
                       SizedBox(
                         width: double.infinity,
@@ -392,9 +415,9 @@ class CompareTab extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'Change schools',
-                            style: TextStyle(color: Colors.white),
+                          child: Text(
+                            AppStrings.get('changeSchools', lang),
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
                       ),
@@ -403,11 +426,11 @@ class CompareTab extends ConsumerWidget {
                         padding: const EdgeInsets.symmetric(vertical: 40),
                         child: Center(
                           child: Text(
-                            'Select two schools above to see a\nside by side comparison',
+                            AppStrings.get('selectTwoSchoolsPrompt', lang),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey.shade500,
+                              color: context.appTextSecondary,
                             ),
                           ),
                         ),
@@ -422,7 +445,11 @@ class CompareTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildComparisonTable(CompareState compareState) {
+  Widget _buildComparisonTable(
+    BuildContext context,
+    CompareState compareState,
+    AppLanguage lang,
+  ) {
     final school1 = compareState.school1!;
     final school2 = compareState.school2!;
     final categoryColors1 = _categoryColors(school1.category);
@@ -434,7 +461,7 @@ class CompareTab extends ConsumerWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -447,12 +474,14 @@ class CompareTab extends ConsumerWidget {
       child: Column(
         children: [
           _buildRow(
-            'Location',
+            context,
+            AppStrings.get('location', lang),
             Text(school1.location, style: const TextStyle(fontSize: 12)),
             Text(school2.location, style: const TextStyle(fontSize: 12)),
           ),
           _buildRow(
-            'Category',
+            context,
+            AppStrings.get('category', lang),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
@@ -460,7 +489,7 @@ class CompareTab extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                _categoryLabel(school1.category),
+                _categoryLabel(school1.category, lang),
                 style: TextStyle(fontSize: 10, color: categoryColors1['text']),
               ),
             ),
@@ -471,13 +500,14 @@ class CompareTab extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
-                _categoryLabel(school2.category),
+                _categoryLabel(school2.category, lang),
                 style: TextStyle(fontSize: 10, color: categoryColors2['text']),
               ),
             ),
           ),
           _buildRow(
-            'Annual fee',
+            context,
+            AppStrings.get('annualFee', lang),
             Row(
               children: [
                 Text(
@@ -487,7 +517,7 @@ class CompareTab extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                     color: school1IsCheaper
                         ? const Color(0xFF27500A)
-                        : Colors.black87,
+                        : context.appTextPrimary,
                   ),
                 ),
                 if (school1IsCheaper) ...[
@@ -505,7 +535,7 @@ class CompareTab extends ConsumerWidget {
                     fontWeight: FontWeight.w600,
                     color: school2IsCheaper
                         ? const Color(0xFF27500A)
-                        : Colors.black87,
+                        : context.appTextPrimary,
                   ),
                 ),
                 if (school2IsCheaper) ...[
@@ -516,22 +546,28 @@ class CompareTab extends ConsumerWidget {
             ),
           ),
           _buildRow(
-            'Streams offered',
+            context,
+            AppStrings.get('streamsOffered', lang),
             Text(
               school1.streamsOffered.isEmpty
                   ? '-'
-                  : school1.streamsOffered.map(_streamLabel).join(', '),
+                  : school1.streamsOffered
+                      .map((s) => _streamLabel(s, lang))
+                      .join(', '),
               style: const TextStyle(fontSize: 12),
             ),
             Text(
               school2.streamsOffered.isEmpty
                   ? '-'
-                  : school2.streamsOffered.map(_streamLabel).join(', '),
+                  : school2.streamsOffered
+                      .map((s) => _streamLabel(s, lang))
+                      .join(', '),
               style: const TextStyle(fontSize: 12),
             ),
           ),
           _buildRow(
-            'Facilities',
+            context,
+            AppStrings.get('facilities', lang),
             Text(
               school1.facilities.isEmpty ? '-' : school1.facilities.join(', '),
               style: const TextStyle(fontSize: 12),

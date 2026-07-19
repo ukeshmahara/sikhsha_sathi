@@ -53,4 +53,9 @@ class FavouriteLocalDatasource implements IFavouriteLocalDataSource {
   bool isFavouriteCached(String schoolId) {
     return _hiveService.isFavouriteCached(schoolId);
   }
+
+  @override
+  Future<void> clearCache() async {
+    await _hiveService.clearFavouriteCache();
+  }
 }

@@ -218,10 +218,34 @@ class AuthRepository
   }
 
   // ================= GET CURRENT USER =================
+  // Online: verify against the backend via /auth/whoami using the saved
+  // token — this is the authoritative source (matters for biometric login,
+  // which relies entirely on this to confirm the token is still valid).
+  // Offline: fall back to whatever was last cached locally.
 
   @override
   Future<Either<Failure, AuthEntity>>
       getCurrentUser() async {
+    if (await _networkInfo.isConnected) {
+      try {
+        final result = await _remoteDatasource.getCurrentUser();
+
+        if (result == null) {
+          return const Left(
+            ApiFailure(
+              message: "Your session is no longer valid. Please log in again.",
+            ),
+          );
+        }
+
+        return Right(result.toEntity());
+      } catch (e) {
+        return Left(
+          ApiFailure(message: e.toString()),
+        );
+      }
+    }
+
     try {
       final user =
           await _localDatasource

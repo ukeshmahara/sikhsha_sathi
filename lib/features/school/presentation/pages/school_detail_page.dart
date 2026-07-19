@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/inquiry/presentation/pages/inquiry_page.dart';
+import 'package:sikhsha_sathi/features/review/presentation/widgets/review_section.dart';
 import 'package:sikhsha_sathi/features/school/domain/entities/school_entity.dart';
 
 class SchoolDetailPage extends ConsumerWidget {
@@ -17,30 +23,47 @@ class SchoolDetailPage extends ConsumerWidget {
     return '$domain${school.image}'; // backend already returns "/uploads/<filename>"
   }
 
-  String _categoryLabel(String category) {
+  String _categoryLabel(String category, AppLanguage lang) {
     switch (category) {
       case 'international':
-        return 'International';
+        return AppStrings.get('international', lang);
       case 'public':
-        return 'Public';
+        return AppStrings.get('public', lang);
       case 'private':
-        return 'Private';
+        return AppStrings.get('private', lang);
       default:
         return category;
     }
   }
 
-  String _streamLabel(String stream) {
+  String _streamLabel(String stream, AppLanguage lang) {
     switch (stream) {
       case 'science':
-        return 'Science';
+        return AppStrings.get('science', lang);
       case 'management':
-        return 'Management';
+        return AppStrings.get('management', lang);
       case 'humanities':
-        return 'Humanities';
+        return AppStrings.get('humanities', lang);
       default:
         return stream;
     }
+  }
+
+  // Formats 1500000 -> "1,500,000" without needing the intl package
+  String _formatFees(double fees) {
+    final wholeNumber = fees.toStringAsFixed(0);
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < wholeNumber.length; i++) {
+      final positionFromEnd = wholeNumber.length - i;
+      buffer.write(wholeNumber[i]);
+
+      if (positionFromEnd > 1 && positionFromEnd % 3 == 1) {
+        buffer.write(',');
+      }
+    }
+
+    return buffer.toString();
   }
 
   @override
@@ -48,6 +71,7 @@ class SchoolDetailPage extends ConsumerWidget {
     final favouriteState = ref.watch(favouriteViewModelProvider);
     final isFavourite =
         school.id != null && favouriteState.isFavourite(school.id!);
+    final lang = ref.watch(localeViewModelProvider).language;
 
     return Scaffold(
       body: CustomScrollView(
@@ -74,7 +98,8 @@ class SchoolDetailPage extends ConsumerWidget {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
-                              errorMessage ?? 'Could not update favourite',
+                              errorMessage ??
+                                  AppStrings.get('couldNotUpdateFavourite', lang),
                             ),
                           ),
                         );
@@ -101,10 +126,10 @@ class SchoolDetailPage extends ConsumerWidget {
                   ? Image.network(
                       _imageUrl!,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _headerPlaceholder(),
+                      errorBuilder: (errorContext, error, stackTrace) =>
+                          _headerPlaceholder(context),
                     )
-                  : _headerPlaceholder(),
+                  : _headerPlaceholder(context),
             ),
           ),
           SliverToBoxAdapter(
@@ -124,17 +149,17 @@ class SchoolDetailPage extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.location_on,
                         size: 18,
-                        color: Colors.grey,
+                        color: context.appTextSecondary,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           school.location,
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: context.appTextSecondary,
                             fontSize: 15,
                           ),
                         ),
@@ -157,7 +182,7 @@ class SchoolDetailPage extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          _categoryLabel(school.category),
+                          _categoryLabel(school.category, lang),
                           style: const TextStyle(
                             color: Colors.blue,
                             fontWeight: FontWeight.w600,
@@ -167,7 +192,7 @@ class SchoolDetailPage extends ConsumerWidget {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        'Rs ${school.fees.toStringAsFixed(0)}/year',
+                        'Rs ${_formatFees(school.fees)}${AppStrings.get('perYear', lang)}',
                         style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.bold,
@@ -181,9 +206,9 @@ class SchoolDetailPage extends ConsumerWidget {
 
                   // STREAMS OFFERED
                   if (school.streamsOffered.isNotEmpty) ...[
-                    const Text(
-                      'Streams offered',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('streamsOffered', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -195,7 +220,7 @@ class SchoolDetailPage extends ConsumerWidget {
                       children: school.streamsOffered
                           .map(
                             (stream) => Chip(
-                              label: Text(_streamLabel(stream)),
+                              label: Text(_streamLabel(stream, lang)),
                               backgroundColor: Colors.purple.shade50,
                               labelStyle: TextStyle(
                                 color: Colors.purple.shade700,
@@ -211,9 +236,9 @@ class SchoolDetailPage extends ConsumerWidget {
                   // DESCRIPTION
                   if (school.description != null &&
                       school.description!.isNotEmpty) ...[
-                    const Text(
-                      'About',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('about', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -232,9 +257,9 @@ class SchoolDetailPage extends ConsumerWidget {
 
                   // FACILITIES
                   if (school.facilities.isNotEmpty) ...[
-                    const Text(
-                      'Facilities',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('facilities', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -283,9 +308,9 @@ class SchoolDetailPage extends ConsumerWidget {
                   if (school.contactPhone != null ||
                       school.contactEmail != null ||
                       school.contactWebsite != null) ...[
-                    const Text(
-                      'Contact',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.get('contact', lang),
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -293,14 +318,42 @@ class SchoolDetailPage extends ConsumerWidget {
                     const SizedBox(height: 10),
                     if (school.contactPhone != null &&
                         school.contactPhone!.isNotEmpty)
-                      _contactRow(Icons.phone, school.contactPhone!),
+                      _contactRow(context, Icons.phone, school.contactPhone!),
                     if (school.contactEmail != null &&
                         school.contactEmail!.isNotEmpty)
-                      _contactRow(Icons.email, school.contactEmail!),
+                      _contactRow(context, Icons.email, school.contactEmail!),
                     if (school.contactWebsite != null &&
                         school.contactWebsite!.isNotEmpty)
-                      _contactRow(Icons.language, school.contactWebsite!),
+                      _contactRow(context, Icons.language, school.contactWebsite!),
                   ],
+
+                  if (school.id != null)
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => InquiryPage(school: school),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.help_outline, size: 18),
+                        label: const Text('Ask this school'),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 24),
+
+                  // REVIEWS & RATINGS
+                  if (school.id != null) ReviewSection(schoolId: school.id!),
                 ],
               ),
             ),
@@ -310,7 +363,7 @@ class SchoolDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _headerPlaceholder() {
+  Widget _headerPlaceholder(BuildContext context) {
     return Container(
       color: Colors.blue.shade100,
       child: Icon(
@@ -321,12 +374,12 @@ class SchoolDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _contactRow(IconData icon, String value) {
+  Widget _contactRow(BuildContext context, IconData icon, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: Colors.grey.shade600),
+          Icon(icon, size: 18, color: context.appTextSecondary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

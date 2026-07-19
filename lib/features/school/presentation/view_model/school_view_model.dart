@@ -12,8 +12,8 @@ final schoolViewModelProvider =
 // ================= VIEWMODEL =================
 
 class SchoolViewModel extends Notifier<SchoolState> {
-  late final GetSchoolsUsecase _getSchoolsUsecase;
-  late final GetCategoryCountsUsecase _getCategoryCountsUsecase;
+  late GetSchoolsUsecase _getSchoolsUsecase;
+  late GetCategoryCountsUsecase _getCategoryCountsUsecase;
 
   @override
   SchoolState build() {

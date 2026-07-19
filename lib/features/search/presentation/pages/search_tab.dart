@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
 import 'package:sikhsha_sathi/features/school/presentation/widgets/school_card.dart';
 import 'package:sikhsha_sathi/features/search/presentation/state/search_state.dart';
@@ -37,6 +38,14 @@ class _SearchTabState extends ConsumerState<SearchTab> {
     {'value': 'humanities', 'label': 'Humanities'},
   ];
 
+  static const _sortOptions = [
+    {'value': 'fees_asc', 'label': 'Price: Low to High'},
+    {'value': 'fees_desc', 'label': 'Price: High to Low'},
+    {'value': 'name_asc', 'label': 'Name A-Z'},
+  ];
+
+  static const double _maxPossibleFee = 2000000;
+
   String _categoryLabel(String value) {
     return _categories.firstWhere(
       (c) => c['value'] == value,
@@ -51,11 +60,18 @@ class _SearchTabState extends ConsumerState<SearchTab> {
     )['label']!;
   }
 
+  String _sortLabel(String value) {
+    return _sortOptions.firstWhere(
+      (s) => s['value'] == value,
+      orElse: () => {'label': value},
+    )['label']!;
+  }
+
   void _openFilterSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: context.appSurface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -64,114 +80,214 @@ class _SearchTabState extends ConsumerState<SearchTab> {
           builder: (context, ref, _) {
             final searchState = ref.watch(searchViewModelProvider);
 
-            return Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Filters',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Category',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _categories.map((cat) {
-                      final isSelected =
-                          searchState.selectedCategory == cat['value'];
-                      return GestureDetector(
-                        onTap: () => ref
-                            .read(searchViewModelProvider.notifier)
-                            .setCategory(cat['value']!),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
+            return StatefulBuilder(
+              builder: (context, setSheetState) {
+                RangeValues currentRange = RangeValues(
+                  searchState.minFee ?? 0,
+                  searchState.maxFee ?? _maxPossibleFee,
+                );
+
+                return Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Filters',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: context.appTextPrimary,
                           ),
-                          decoration: BoxDecoration(
-                            color: isSelected ? _kPrimaryBlue : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: isSelected
-                                ? null
-                                : Border.all(color: Colors.grey.shade300),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Category',
+                          style: TextStyle(fontSize: 12, color: context.appTextSecondary),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _categories.map((cat) {
+                            final isSelected =
+                                searchState.selectedCategory == cat['value'];
+                            return GestureDetector(
+                              onTap: () => ref
+                                  .read(searchViewModelProvider.notifier)
+                                  .setCategory(cat['value']!),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? _kPrimaryBlue : context.appSurface,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isSelected
+                                      ? null
+                                      : Border.all(color: context.appBorder),
+                                ),
+                                child: Text(
+                                  cat['label']!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isSelected ? Colors.white : context.appTextPrimary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          'Stream',
+                          style: TextStyle(fontSize: 12, color: context.appTextSecondary),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _streams.map((stream) {
+                            final isSelected =
+                                searchState.selectedStream == stream['value'];
+                            return GestureDetector(
+                              onTap: () => ref
+                                  .read(searchViewModelProvider.notifier)
+                                  .setStream(stream['value']!),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? _kPrimaryBlue : context.appSurface,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isSelected
+                                      ? null
+                                      : Border.all(color: context.appBorder),
+                                ),
+                                child: Text(
+                                  stream['label']!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isSelected ? Colors.white : context.appTextPrimary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Fee range',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.appTextSecondary,
+                              ),
+                            ),
+                            Text(
+                              'Rs ${currentRange.start.toStringAsFixed(0)} — Rs ${currentRange.end.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: context.appTextPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        RangeSlider(
+                          values: currentRange,
+                          min: 0,
+                          max: _maxPossibleFee,
+                          divisions: 20,
+                          activeColor: _kPrimaryBlue,
+                          labels: RangeLabels(
+                            'Rs ${currentRange.start.toStringAsFixed(0)}',
+                            'Rs ${currentRange.end.toStringAsFixed(0)}',
                           ),
-                          child: Text(
-                            cat['label']!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isSelected ? Colors.white : Colors.black87,
+                          onChanged: (values) {
+                            setSheetState(() {
+                              currentRange = values;
+                            });
+                          },
+                          onChangeEnd: (values) {
+                            final isFullRange =
+                                values.start == 0 && values.end == _maxPossibleFee;
+
+                            ref.read(searchViewModelProvider.notifier).setFeeRange(
+                                  isFullRange ? null : values.start,
+                                  isFullRange ? null : values.end,
+                                );
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Sort by',
+                          style: TextStyle(fontSize: 12, color: context.appTextSecondary),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _sortOptions.map((sort) {
+                            final isSelected =
+                                searchState.sortOption == sort['value'];
+                            return GestureDetector(
+                              onTap: () => ref
+                                  .read(searchViewModelProvider.notifier)
+                                  .setSort(sort['value']!),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? _kPrimaryBlue : context.appSurface,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: isSelected
+                                      ? null
+                                      : Border.all(color: context.appBorder),
+                                ),
+                                child: Text(
+                                  sort['label']!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: isSelected ? Colors.white : context.appTextPrimary,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _kPrimaryBlue,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Apply',
+                              style: TextStyle(color: Colors.white),
                             ),
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Stream',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _streams.map((stream) {
-                      final isSelected =
-                          searchState.selectedStream == stream['value'];
-                      return GestureDetector(
-                        onTap: () => ref
-                            .read(searchViewModelProvider.notifier)
-                            .setStream(stream['value']!),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isSelected ? _kPrimaryBlue : Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            border: isSelected
-                                ? null
-                                : Border.all(color: Colors.grey.shade300),
-                          ),
-                          child: Text(
-                            stream['label']!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isSelected ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _kPrimaryBlue,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Apply',
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
         );
@@ -184,19 +300,25 @@ class _SearchTabState extends ConsumerState<SearchTab> {
     final searchState = ref.watch(searchViewModelProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FA),
+      backgroundColor: context.appBackground,
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                MediaQuery.of(context).padding.top + 14,
+                16,
+                14,
+              ),
               color: _kPrimaryBlue,
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.appSurface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -214,12 +336,12 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                           hintText: 'Search school, keyword',
                           hintStyle: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey.shade500,
+                            color: context.appTextSecondary,
                           ),
                           prefixIcon: Icon(
                             Icons.search,
                             size: 20,
-                            color: Colors.grey.shade500,
+                            color: context.appTextSecondary,
                           ),
                           border: InputBorder.none,
                           isDense: true,
@@ -231,7 +353,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                     if (searchState.query.isNotEmpty)
                       IconButton(
                         icon: const Icon(Icons.close, size: 18),
-                        color: Colors.grey.shade500,
+                        color: context.appTextSecondary,
                         onPressed: () {
                           _controller.clear();
                           ref.read(searchViewModelProvider.notifier).clearQuery();
@@ -247,7 +369,6 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // FILTER ROW
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -295,13 +416,25 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                                   .read(searchViewModelProvider.notifier)
                                   .setStream(searchState.selectedStream),
                             ),
+                          if (searchState.minFee != null || searchState.maxFee != null)
+                            _activeFilterChip(
+                              label:
+                                  'Rs ${(searchState.minFee ?? 0).toStringAsFixed(0)} — Rs ${(searchState.maxFee ?? _maxPossibleFee).toStringAsFixed(0)}',
+                              onRemove: () => ref
+                                  .read(searchViewModelProvider.notifier)
+                                  .clearFeeRange(),
+                            ),
+                          if (searchState.sortOption.isNotEmpty)
+                            _activeFilterChip(
+                              label: _sortLabel(searchState.sortOption),
+                              onRemove: () => ref
+                                  .read(searchViewModelProvider.notifier)
+                                  .setSort(searchState.sortOption),
+                            ),
                         ],
                       ),
                     ),
-
                     const SizedBox(height: 14),
-
-                    // BODY — initial / loading / error / empty / results
                     _buildBody(searchState),
                   ],
                 ),
@@ -321,9 +454,9 @@ class _SearchTabState extends ConsumerState<SearchTab> {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.appSurface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: context.appBorder),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -332,7 +465,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
           const SizedBox(width: 6),
           GestureDetector(
             onTap: onRemove,
-            child: Icon(Icons.close, size: 12, color: Colors.grey.shade500),
+            child: Icon(Icons.close, size: 12, color: context.appTextSecondary),
           ),
         ],
       ),
@@ -346,12 +479,12 @@ class _SearchTabState extends ConsumerState<SearchTab> {
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.search, size: 40, color: Colors.grey.shade400),
+              Icon(Icons.search, size: 40, color: context.appTextSecondary),
               const SizedBox(height: 12),
               Text(
                 'Search for a school by name,\nor use filters to narrow results',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 13, color: context.appTextSecondary),
               ),
             ],
           ),
@@ -384,11 +517,11 @@ class _SearchTabState extends ConsumerState<SearchTab> {
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
+              Icon(Icons.search_off, size: 40, color: context.appTextSecondary),
               const SizedBox(height: 12),
               Text(
                 'No schools found',
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 13, color: context.appTextSecondary),
               ),
             ],
           ),
@@ -401,7 +534,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
       children: [
         Text(
           '${searchState.results.length} results found',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+          style: TextStyle(fontSize: 12, color: context.appTextSecondary),
         ),
         const SizedBox(height: 10),
         ...searchState.results.map((school) {

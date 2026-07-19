@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sikhsha_sathi/core/usecases/app_usecase.dart';
-import 'package:sikhsha_sathi/features/profile/data/repositories/profile_repositoy.dart';
+import 'package:sikhsha_sathi/features/profile/data/repositories/profile_repository.dart';
 import '../../../../core/error/failures.dart';
 import '../repositories/profile_repository.dart';
 

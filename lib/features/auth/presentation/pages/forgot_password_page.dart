@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/auth/domain/usecases/forgot_password_usecase.dart';
 
 const Color _kPrimaryBlue = Color(0xFF185FA5);
@@ -59,10 +60,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.appBackground,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: context.appBackground,
+        foregroundColor: context.appTextPrimary,
         elevation: 0,
       ),
       body: SafeArea(
@@ -103,7 +104,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           Text(
             'Enter the email associated with your account and '
             'we\'ll send you a link to reset your password.',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+            style: TextStyle(fontSize: 14, color: context.appTextSecondary),
           ),
           const SizedBox(height: 28),
           const Text(
@@ -118,7 +119,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               hintText: 'you@example.com',
               prefixIcon: const Icon(Icons.email_outlined),
               filled: true,
-              fillColor: Colors.grey.shade100,
+              fillColor: context.appSurfaceMuted,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -201,7 +202,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           'If an account exists for ${_emailController.text.trim()}, '
           'we\'ve sent a link to reset your password. Open it on this '
           'phone or any device with a browser to continue.',
-          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+          style: TextStyle(fontSize: 14, color: context.appTextSecondary),
         ),
         const SizedBox(height: 28),
         SizedBox(

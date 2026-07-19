@@ -40,4 +40,16 @@ class ApiEndpoints {
 
   // Notification endpoints
   static const String notifications = '/notifications';
+
+  // Review endpoints
+  static const String reviews = '/reviews';
+
+  // Recommendation endpoint
+  static const String recommendations = '/recommendations';
+
+  // Inquiry endpoints
+  static const String inquiries = '/inquiries';
+
+  // Chatbot endpoint
+  static const String chatbot = '/chatbot';
 }
