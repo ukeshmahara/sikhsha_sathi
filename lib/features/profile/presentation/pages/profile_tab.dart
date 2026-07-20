@@ -15,8 +15,10 @@ import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/app/theme/theme_state.dart';
 import 'package:sikhsha_sathi/app/theme/theme_view_model.dart';
+import 'package:sikhsha_sathi/features/auth/domain/usecases/login_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
+import 'package:sikhsha_sathi/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/pages/help_support_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/pages/privacy_policy_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/pages/terms_of_service_page.dart';
@@ -238,7 +240,6 @@ class _ProfileTabState
     final savedProfilePicture =
         session.getProfilePicture();
 
-    // backend returns "/uploads/<filename>" — prepend domain to make a valid URL
     final savedProfilePictureUrl = savedProfilePicture != null &&
             savedProfilePicture.isNotEmpty
         ? '${ApiEndpoints.baseUrl.replaceAll('/api/v1', '')}$savedProfilePicture'
@@ -443,26 +444,6 @@ class _ProfileTabState
             const SizedBox(height: 10),
 
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(
-                horizontal: 20,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {},
-                  icon:
-                      const Icon(Icons.edit),
-                  label: Text(
-                    AppStrings.get('editProfile', lang),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -529,6 +510,33 @@ class _ProfileTabState
               ),
               child: SizedBox(
                 width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfilePage(),
+                      ),
+                    );
+                  },
+                  icon:
+                      const Icon(Icons.edit),
+                  label: Text(
+                    AppStrings.get('editProfile', lang),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 20,
+              ),
+              child: SizedBox(
+                width: double.infinity,
                 child:
                     ElevatedButton.icon(
                   style:
@@ -537,9 +545,6 @@ class _ProfileTabState
                         Colors.red,
                   ),
                   onPressed: () async {
-                    // clear the favourite Hive cache and in-memory state so
-                    // the next user on this device doesn't see this user's
-                    // favourites, even without a full app restart
                     await ref
                         .read(favouriteViewModelProvider.notifier)
                         .clearCache();
@@ -547,8 +552,6 @@ class _ProfileTabState
                     await session
                         .clearSession();
 
-                    // force schools and profile to reload fresh next time
-                    // too, rather than reusing stale in-memory state
                     ref.invalidate(schoolViewModelProvider);
                     ref.invalidate(profileViewModelProvider);
 
@@ -685,6 +688,196 @@ class _ProfileTabState
     );
   }
 
+  Future<bool> _confirmPasswordBeforeEnabling(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final session = ref.read(userSessionServiceProvider);
+    final email = session.getEmail();
+
+    if (email == null || email.isEmpty) {
+      return false;
+    }
+
+    final passwordController = TextEditingController();
+    bool obscure = true;
+    String? errorText;
+    bool isVerifying = false;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            return AlertDialog(
+              title: const Text('Confirm your password'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'For your security, please enter your password to enable fingerprint login.',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: obscure,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      errorText: errorText,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          obscure ? Icons.visibility_off : Icons.visibility,
+                        ),
+                        onPressed: () {
+                          setDialogState(() => obscure = !obscure);
+                        },
+                      ),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isVerifying
+                      ? null
+                      : () => Navigator.pop(dialogContext, false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: isVerifying
+                      ? null
+                      : () async {
+                          final password = passwordController.text.trim();
+
+                          if (password.isEmpty) {
+                            setDialogState(() {
+                              errorText = 'Please enter your password';
+                            });
+                            return;
+                          }
+
+                          setDialogState(() {
+                            isVerifying = true;
+                            errorText = null;
+                          });
+
+                          final loginUsecase = ref.read(loginUsecaseProvider);
+
+                          final result = await loginUsecase(
+                            LoginParams(email: email, password: password),
+                          );
+
+                          if (!dialogContext.mounted) return;
+
+                          result.fold(
+                            (failure) {
+                              setDialogState(() {
+                                isVerifying = false;
+                                errorText = 'Incorrect password';
+                              });
+                            },
+                            (_) {
+                              Navigator.pop(dialogContext, true);
+                            },
+                          );
+                        },
+                  child: isVerifying
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Confirm'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    return confirmed ?? false;
+  }
+
+  Widget _buildBiometricToggle(BuildContext context, WidgetRef ref, AppLanguage lang) {
+    final session = ref.read(userSessionServiceProvider);
+    final isEnabled = session.isBiometricLoginEnabled();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: context.appSurface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.fingerprint, color: context.isDark ? Colors.blue.shade200 : Colors.blue),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.get('fingerprintLogin', lang),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: context.appTextPrimary,
+                  ),
+                ),
+                Text(
+                  AppStrings.get('unlockWithFingerprint', lang),
+                  style: TextStyle(fontSize: 11, color: context.appTextSecondary),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: isEnabled,
+            onChanged: (value) async {
+              if (value) {
+                final passwordConfirmed =
+                    await _confirmPasswordBeforeEnabling(context, ref);
+
+                if (!passwordConfirmed) return;
+
+                final biometricService = ref.read(biometricServiceProvider);
+                final canUse = await biometricService.canCheckBiometrics();
+
+                if (!canUse) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'No fingerprint set up on this device. Add one in your phone settings first.',
+                        ),
+                      ),
+                    );
+                  }
+                  return;
+                }
+
+                final confirmed = await biometricService.authenticate(
+                  reason: 'Confirm your fingerprint to enable fingerprint login',
+                );
+
+                if (!confirmed) return;
+              }
+
+              await session.setBiometricLoginEnabled(value);
+              setState(() {});
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLanguageToggle(
     BuildContext context,
     WidgetRef ref,
@@ -730,77 +923,6 @@ class _ProfileTabState
               ref.read(localeViewModelProvider.notifier).setLanguage(
                     value ? AppLanguage.nepali : AppLanguage.english,
                   );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBiometricToggle(BuildContext context, WidgetRef ref, AppLanguage lang) {
-    final session = ref.read(userSessionServiceProvider);
-    final isEnabled = session.isBiometricLoginEnabled();
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: context.appSurface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.fingerprint, color: context.isDark ? Colors.blue.shade200 : Colors.blue),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  AppStrings.get('fingerprintLogin', lang),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: context.appTextPrimary,
-                  ),
-                ),
-                Text(
-                  AppStrings.get('unlockWithFingerprint', lang),
-                  style: TextStyle(fontSize: 11, color: context.appTextSecondary),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: isEnabled,
-            onChanged: (value) async {
-              if (value) {
-                // require a successful scan before turning this on, so we
-                // know the device's biometrics actually work for this user
-                final biometricService = ref.read(biometricServiceProvider);
-                final canUse = await biometricService.canCheckBiometrics();
-
-                if (!canUse) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'No fingerprint set up on this device. Add one in your phone settings first.',
-                        ),
-                      ),
-                    );
-                  }
-                  return;
-                }
-
-                final confirmed = await biometricService.authenticate(
-                  reason: 'Confirm your fingerprint to enable fingerprint login',
-                );
-
-                if (!confirmed) return;
-              }
-
-              await session.setBiometricLoginEnabled(value);
-              setState(() {});
             },
           ),
         ],
