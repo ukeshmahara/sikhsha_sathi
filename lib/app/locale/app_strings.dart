@@ -242,6 +242,50 @@ class AppStrings {
       AppLanguage.english: '/yr',
       AppLanguage.nepali: '/वर्ष',
     },
+    'searchSchoolKeywordShort': {
+      AppLanguage.english: 'Search school, keyword',
+      AppLanguage.nepali: 'विद्यालय, किवर्ड खोज्नुहोस्',
+    },
+    'filters': {
+      AppLanguage.english: 'Filters',
+      AppLanguage.nepali: 'फिल्टरहरू',
+    },
+    'stream': {
+      AppLanguage.english: 'Stream',
+      AppLanguage.nepali: 'विषय समूह',
+    },
+    'feeRange': {
+      AppLanguage.english: 'Fee range',
+      AppLanguage.nepali: 'शुल्क दायरा',
+    },
+    'sortBy': {
+      AppLanguage.english: 'Sort by',
+      AppLanguage.nepali: 'क्रमबद्ध गर्नुहोस्',
+    },
+    'priceLowToHigh': {
+      AppLanguage.english: 'Price: Low to High',
+      AppLanguage.nepali: 'मूल्य: कम देखि बढी',
+    },
+    'priceHighToLow': {
+      AppLanguage.english: 'Price: High to Low',
+      AppLanguage.nepali: 'मूल्य: बढी देखि कम',
+    },
+    'nameAZ': {
+      AppLanguage.english: 'Name A-Z',
+      AppLanguage.nepali: 'नाम A-Z',
+    },
+    'apply': {
+      AppLanguage.english: 'Apply',
+      AppLanguage.nepali: 'लागू गर्नुहोस्',
+    },
+    'searchPromptTitle': {
+      AppLanguage.english: 'Search for a school by name,\nor use filters to narrow results',
+      AppLanguage.nepali: 'नाम अनुसार विद्यालय खोज्नुहोस्,\nवा नतिजा साँघुर्याउन फिल्टर प्रयोग गर्नुहोस्',
+    },
+    'resultsFound': {
+      AppLanguage.english: 'results found',
+      AppLanguage.nepali: 'नतिजाहरू फेला परे',
+    },
   };
 
   static String get(String key, AppLanguage language) {

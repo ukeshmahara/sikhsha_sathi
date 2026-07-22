@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sikhsha_sathi/app/locale/app_strings.dart';
+import 'package:sikhsha_sathi/app/locale/locale_state.dart';
+import 'package:sikhsha_sathi/app/locale/locale_view_model.dart';
 import 'package:sikhsha_sathi/app/theme/app_colors.dart';
 import 'package:sikhsha_sathi/features/school/presentation/pages/school_detail_page.dart';
 import 'package:sikhsha_sathi/features/school/presentation/widgets/school_card.dart';
@@ -26,48 +29,51 @@ class _SearchTabState extends ConsumerState<SearchTab> {
   }
 
   static const _categories = [
-    {'value': 'international', 'label': 'International'},
-    {'value': 'public', 'label': 'Public'},
-    {'value': 'private', 'label': 'Private'},
-    {'value': 'budget_friendly', 'label': 'Budget friendly'},
+    {'value': 'international', 'key': 'international'},
+    {'value': 'public', 'key': 'public'},
+    {'value': 'private', 'key': 'private'},
+    {'value': 'budget_friendly', 'key': 'budgetFriendly'},
   ];
 
   static const _streams = [
-    {'value': 'science', 'label': 'Science'},
-    {'value': 'management', 'label': 'Management'},
-    {'value': 'humanities', 'label': 'Humanities'},
+    {'value': 'science', 'key': 'science'},
+    {'value': 'management', 'key': 'management'},
+    {'value': 'humanities', 'key': 'humanities'},
   ];
 
   static const _sortOptions = [
-    {'value': 'fees_asc', 'label': 'Price: Low to High'},
-    {'value': 'fees_desc', 'label': 'Price: High to Low'},
-    {'value': 'name_asc', 'label': 'Name A-Z'},
+    {'value': 'fees_asc', 'key': 'priceLowToHigh'},
+    {'value': 'fees_desc', 'key': 'priceHighToLow'},
+    {'value': 'name_asc', 'key': 'nameAZ'},
   ];
 
   static const double _maxPossibleFee = 2000000;
 
-  String _categoryLabel(String value) {
-    return _categories.firstWhere(
+  String _categoryLabel(String value, AppLanguage lang) {
+    final match = _categories.firstWhere(
       (c) => c['value'] == value,
-      orElse: () => {'label': value},
-    )['label']!;
+      orElse: () => {'key': value},
+    );
+    return AppStrings.get(match['key']!, lang);
   }
 
-  String _streamLabel(String value) {
-    return _streams.firstWhere(
+  String _streamLabel(String value, AppLanguage lang) {
+    final match = _streams.firstWhere(
       (s) => s['value'] == value,
-      orElse: () => {'label': value},
-    )['label']!;
+      orElse: () => {'key': value},
+    );
+    return AppStrings.get(match['key']!, lang);
   }
 
-  String _sortLabel(String value) {
-    return _sortOptions.firstWhere(
+  String _sortLabel(String value, AppLanguage lang) {
+    final match = _sortOptions.firstWhere(
       (s) => s['value'] == value,
-      orElse: () => {'label': value},
-    )['label']!;
+      orElse: () => {'key': value},
+    );
+    return AppStrings.get(match['key']!, lang);
   }
 
-  void _openFilterSheet(BuildContext context) {
+  void _openFilterSheet(BuildContext context, AppLanguage lang) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -95,7 +101,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Filters',
+                          AppStrings.get('filters', lang),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -104,7 +110,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Category',
+                          AppStrings.get('category', lang),
                           style: TextStyle(fontSize: 12, color: context.appTextSecondary),
                         ),
                         const SizedBox(height: 8),
@@ -131,7 +137,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                                       : Border.all(color: context.appBorder),
                                 ),
                                 child: Text(
-                                  cat['label']!,
+                                  AppStrings.get(cat['key']!, lang),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isSelected ? Colors.white : context.appTextPrimary,
@@ -143,7 +149,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                         ),
                         const SizedBox(height: 20),
                         Text(
-                          'Stream',
+                          AppStrings.get('stream', lang),
                           style: TextStyle(fontSize: 12, color: context.appTextSecondary),
                         ),
                         const SizedBox(height: 8),
@@ -170,7 +176,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                                       : Border.all(color: context.appBorder),
                                 ),
                                 child: Text(
-                                  stream['label']!,
+                                  AppStrings.get(stream['key']!, lang),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isSelected ? Colors.white : context.appTextPrimary,
@@ -185,7 +191,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Fee range',
+                              AppStrings.get('feeRange', lang),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: context.appTextSecondary,
@@ -228,7 +234,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Sort by',
+                          AppStrings.get('sortBy', lang),
                           style: TextStyle(fontSize: 12, color: context.appTextSecondary),
                         ),
                         const SizedBox(height: 8),
@@ -255,7 +261,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                                       : Border.all(color: context.appBorder),
                                 ),
                                 child: Text(
-                                  sort['label']!,
+                                  AppStrings.get(sort['key']!, lang),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isSelected ? Colors.white : context.appTextPrimary,
@@ -277,9 +283,9 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
-                              'Apply',
-                              style: TextStyle(color: Colors.white),
+                            child: Text(
+                              AppStrings.get('apply', lang),
+                              style: const TextStyle(color: Colors.white),
                             ),
                           ),
                         ),
@@ -298,6 +304,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
   @override
   Widget build(BuildContext context) {
     final searchState = ref.watch(searchViewModelProvider);
+    final lang = ref.watch(localeViewModelProvider).language;
 
     return Scaffold(
       backgroundColor: context.appBackground,
@@ -333,7 +340,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                               .onQueryChanged(value);
                         },
                         decoration: InputDecoration(
-                          hintText: 'Search school, keyword',
+                          hintText: AppStrings.get('searchSchoolKeywordShort', lang),
                           hintStyle: TextStyle(
                             fontSize: 13,
                             color: context.appTextSecondary,
@@ -374,7 +381,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                       child: Row(
                         children: [
                           GestureDetector(
-                            onTap: () => _openFilterSheet(context),
+                            onTap: () => _openFilterSheet(context, lang),
                             child: Container(
                               margin: const EdgeInsets.only(right: 8),
                               padding: const EdgeInsets.symmetric(
@@ -385,14 +392,14 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                                 color: _kPrimaryBlue,
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.tune, size: 13, color: Colors.white),
-                                  SizedBox(width: 6),
+                                  const Icon(Icons.tune, size: 13, color: Colors.white),
+                                  const SizedBox(width: 6),
                                   Text(
-                                    'Filters',
-                                    style: TextStyle(
+                                    AppStrings.get('filters', lang),
+                                    style: const TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w500,
                                       color: Colors.white,
@@ -404,14 +411,14 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                           ),
                           if (searchState.selectedCategory.isNotEmpty)
                             _activeFilterChip(
-                              label: _categoryLabel(searchState.selectedCategory),
+                              label: _categoryLabel(searchState.selectedCategory, lang),
                               onRemove: () => ref
                                   .read(searchViewModelProvider.notifier)
                                   .setCategory(searchState.selectedCategory),
                             ),
                           if (searchState.selectedStream.isNotEmpty)
                             _activeFilterChip(
-                              label: _streamLabel(searchState.selectedStream),
+                              label: _streamLabel(searchState.selectedStream, lang),
                               onRemove: () => ref
                                   .read(searchViewModelProvider.notifier)
                                   .setStream(searchState.selectedStream),
@@ -426,7 +433,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                             ),
                           if (searchState.sortOption.isNotEmpty)
                             _activeFilterChip(
-                              label: _sortLabel(searchState.sortOption),
+                              label: _sortLabel(searchState.sortOption, lang),
                               onRemove: () => ref
                                   .read(searchViewModelProvider.notifier)
                                   .setSort(searchState.sortOption),
@@ -435,7 +442,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    _buildBody(searchState),
+                    _buildBody(searchState, lang),
                   ],
                 ),
               ),
@@ -472,7 +479,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
     );
   }
 
-  Widget _buildBody(SearchState searchState) {
+  Widget _buildBody(SearchState searchState, AppLanguage lang) {
     if (searchState.status == SearchStatus.initial) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 60),
@@ -482,7 +489,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
               Icon(Icons.search, size: 40, color: context.appTextSecondary),
               const SizedBox(height: 12),
               Text(
-                'Search for a school by name,\nor use filters to narrow results',
+                AppStrings.get('searchPromptTitle', lang),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 13, color: context.appTextSecondary),
               ),
@@ -504,7 +511,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
         padding: const EdgeInsets.symmetric(vertical: 40),
         child: Center(
           child: Text(
-            searchState.errorMessage ?? 'Something went wrong',
+            searchState.errorMessage ?? AppStrings.get('somethingWentWrong', lang),
             textAlign: TextAlign.center,
           ),
         ),
@@ -520,7 +527,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
               Icon(Icons.search_off, size: 40, color: context.appTextSecondary),
               const SizedBox(height: 12),
               Text(
-                'No schools found',
+                AppStrings.get('noSchoolsFound', lang),
                 style: TextStyle(fontSize: 13, color: context.appTextSecondary),
               ),
             ],
@@ -533,7 +540,7 @@ class _SearchTabState extends ConsumerState<SearchTab> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '${searchState.results.length} results found',
+          '${searchState.results.length} ${AppStrings.get('resultsFound', lang)}',
           style: TextStyle(fontSize: 12, color: context.appTextSecondary),
         ),
         const SizedBox(height: 10),
