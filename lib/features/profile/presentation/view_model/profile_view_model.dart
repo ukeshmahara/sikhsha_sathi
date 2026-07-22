@@ -56,11 +56,16 @@ class ProfileViewModel
   // (no error shown, since stale-but-present data is fine for a profile
   // screen — this just quietly keeps things in sync when there's a
   // connection, rather than blindly trusting old SharedPreferences forever).
+  //
+  // NOTE: both fold() branches are `async` and the whole fold() call is
+  // awaited — dartz's Either.fold() does NOT wait for async callbacks on
+  // its own, so without this `await`, this method would return before the
+  // success branch's saveUserSession()/state update had actually finished.
   Future<void> refreshProfile() async {
     final result = await _getCurrentUserUsecase(const CurrentUserParams());
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         // offline or a real failure — keep showing whatever's already
         // cached rather than clearing the screen or showing an error,
         // since the user can still see their last-known profile info
@@ -95,8 +100,10 @@ class ProfileViewModel
       image,
     );
 
-    result.fold(
-      (failure) {
+    // both branches are async and the fold() itself is awaited — see the
+    // note on refreshProfile() above for why this matters
+    await result.fold(
+      (failure) async {
         state = state.copyWith(
           status: ProfileStatus.error,
           errorMessage:
@@ -147,8 +154,10 @@ class ProfileViewModel
       ),
     );
 
-    return result.fold(
-      (failure) {
+    // both branches are async and the fold() itself is awaited — see the
+    // note on refreshProfile() above for why this matters
+    return await result.fold(
+      (failure) async {
         state = state.copyWith(
           status: ProfileStatus.error,
           errorMessage: failure.message,

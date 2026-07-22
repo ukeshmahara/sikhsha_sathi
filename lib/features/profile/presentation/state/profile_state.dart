@@ -23,14 +23,18 @@ class ProfileState extends Equatable {
   ProfileState copyWith({
     ProfileStatus? status,
     String? profilePicture,
+    // errorMessage is deliberately NOT given a "?? this.errorMessage"
+    // fallback like the other fields — callers need to be able to pass
+    // null explicitly and have it actually clear the error (clearError(),
+    // and the start of any fresh operation), not silently keep the old
+    // message around forever.
     String? errorMessage,
   }) {
     return ProfileState(
       status: status ?? this.status,
       profilePicture:
           profilePicture ?? this.profilePicture,
-      errorMessage:
-          errorMessage ?? this.errorMessage,
+      errorMessage: errorMessage,
     );
   }
 
