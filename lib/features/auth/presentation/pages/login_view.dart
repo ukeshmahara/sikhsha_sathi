@@ -423,49 +423,6 @@ class _LoginViewState
 
                 const SizedBox(height: 30),
 
-                // CONTINUE WITH
-                const Center(
-                  child: Text(
-                    "or continue with",
-
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                // SOCIAL ICONS
-                Row(
-
-                  mainAxisAlignment:
-                  MainAxisAlignment.spaceEvenly,
-
-                  children: const [
-
-                    Icon(
-                      Icons.facebook,
-                      color: Colors.blue,
-                      size: 40,
-                    ),
-
-                    Icon(
-                      Icons.g_mobiledata,
-                      color: Colors.red,
-                      size: 50,
-                    ),
-
-                    Icon(
-                      Icons.apple,
-                      color: Colors.black,
-                      size: 40,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 30),
-
                 // SIGNUP
                 Row(
 

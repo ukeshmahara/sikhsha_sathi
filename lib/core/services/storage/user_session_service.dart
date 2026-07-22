@@ -41,8 +41,20 @@ class UserSessionService {
   static const String _profilePicture =
       "profile_picture";
 
-  static const String _biometricEnabled =
-      "biometric_login_enabled";
+  // The specific account fingerprint login is bound to on this device.
+  // Set/cleared ONLY by the explicit toggle in Profile — never touched
+  // by clearSession() — so it correctly survives a logout for the SAME
+  // account, but never gets read as "enabled" for a DIFFERENT account.
+  static const String _biometricUserId =
+      "biometric_user_id";
+
+  // Whoever most recently completed a real login on this device
+  // (normal password login, or a successful biometric restore).
+  // Also survives clearSession() — this is what we compare against
+  // _biometricUserId to decide whether to actually show the
+  // fingerprint button on the Login screen.
+  static const String _lastLoggedInUserId =
+      "last_logged_in_user_id";
 
   Future<void> saveUserSession({
     required String userId,
@@ -85,6 +97,13 @@ class UserSessionService {
         profilePicture,
       );
     }
+
+    // track this as the most recent successful login on this device,
+    // regardless of how it happened (password or biometric restore)
+    await _prefs.setString(
+      _lastLoggedInUserId,
+      userId,
+    );
   }
 
   // ==========================
@@ -142,14 +161,40 @@ class UserSessionService {
     );
   }
 
+  // Called by Profile's fingerprint toggle. Enabling binds fingerprint
+  // login to THIS specific account (userId required) — so it can never
+  // be silently inherited by a different account that logs in later on
+  // the same device. Disabling un-binds it entirely.
+  Future<void> setBiometricLoginEnabled(
+    bool enabled, {
+    String? userId,
+  }) async {
+    if (enabled && userId != null) {
+      await _prefs.setString(_biometricUserId, userId);
+    } else {
+      await _prefs.remove(_biometricUserId);
+    }
+  }
+
+  // True only when fingerprint is bound to the SAME account that most
+  // recently logged in on this device. This is what makes the button:
+  //  - correctly reappear after the SAME account logs back out and in
+  //  - correctly stay hidden for a DIFFERENT account that never
+  //    enabled it themselves
   bool isBiometricLoginEnabled() {
-    return _prefs.getBool(_biometricEnabled) ?? false;
+    final boundUserId = _prefs.getString(_biometricUserId);
+    final lastUserId = _prefs.getString(_lastLoggedInUserId);
+
+    return boundUserId != null && boundUserId == lastUserId;
   }
 
-  Future<void> setBiometricLoginEnabled(bool enabled) async {
-    await _prefs.setBool(_biometricEnabled, enabled);
+  String? getBiometricUserId() {
+    return _prefs.getString(_biometricUserId);
   }
 
+  // Clears the ACTIVE session only — deliberately does NOT touch
+  // _biometricUserId or _lastLoggedInUserId, since both need to persist
+  // through logout for fingerprint login to work at all afterward.
   Future<void> clearSession() async {
     await _prefs.remove(
       _isLoggedIn,
