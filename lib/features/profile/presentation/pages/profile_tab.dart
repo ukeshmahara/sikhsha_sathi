@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
 import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
+import 'package:sikhsha_sathi/core/services/storage/token_service.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
 import 'package:sikhsha_sathi/app/locale/app_strings.dart';
 import 'package:sikhsha_sathi/app/locale/locale_state.dart';
@@ -19,6 +21,7 @@ import 'package:sikhsha_sathi/features/auth/domain/usecases/login_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
 import 'package:sikhsha_sathi/features/favourite/presentation/view_model/favourite_view_model.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/pages/edit_profile_page.dart';
+import 'package:sikhsha_sathi/features/inquiry/presentation/pages/my_inquiries_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/pages/help_support_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/pages/privacy_policy_page.dart';
 import 'package:sikhsha_sathi/features/profile/presentation/pages/terms_of_service_page.dart';
@@ -309,9 +312,9 @@ class _ProfileTabState
                                 _selectedImage!,
                               )
                             : savedProfilePictureUrl != null
-                                ? NetworkImage(
+                                ? CachedNetworkImageProvider(
                                     savedProfilePictureUrl,
-                                  )
+                                  ) as ImageProvider
                                 : null,
                     child:
                         _selectedImage == null &&
@@ -472,6 +475,19 @@ class _ProfileTabState
                   ),
                   _supportRow(
                     context,
+                    icon: Icons.question_answer_outlined,
+                    label: 'My Inquiries',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyInquiriesPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  _supportRow(
+                    context,
                     icon: Icons.privacy_tip_outlined,
                     label: 'Privacy Policy',
                     onTap: () {
@@ -548,6 +564,16 @@ class _ProfileTabState
                     await ref
                         .read(favouriteViewModelProvider.notifier)
                         .clearCache();
+
+                    // CRITICAL: clear the actual auth token too, not just
+                    // the display session data. Without this, the old
+                    // token stays cached and can be picked up again by
+                    // things that read it directly — like fingerprint
+                    // login's whoami restore — even after this account
+                    // has "logged out."
+                    await ref
+                        .read(tokenServiceProvider)
+                        .removeToken();
 
                     await session
                         .clearSession();
@@ -869,7 +895,10 @@ class _ProfileTabState
                 if (!confirmed) return;
               }
 
-              await session.setBiometricLoginEnabled(value);
+              await session.setBiometricLoginEnabled(
+                value,
+                userId: value ? session.getUserId() : null,
+              );
               setState(() {});
             },
           ),
