@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sikhsha_sathi/core/error/failures.dart';
+import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
+import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
 import 'package:sikhsha_sathi/features/auth/domain/entities/auth_entity.dart';
+import 'package:sikhsha_sathi/features/auth/domain/usecases/get_current_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/domain/usecases/login_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/domain/usecases/register_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
@@ -13,28 +17,53 @@ import 'package:sikhsha_sathi/features/auth/presentation/pages/login_view.dart';
 class MockLoginUsecase extends Mock implements LoginUsecase {}
 class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 
+// NEW — LoginView's initState() calls _checkBiometricAvailability(),
+// which reads userSessionServiceProvider (needs real SharedPreferences)
+// and biometricServiceProvider — neither was mocked before, which is
+// what caused every test in this file to fail with UnimplementedError.
+class MockGetCurrentUserUsecase extends Mock implements GetCurrentUserUsecase {}
+class MockBiometricService extends Mock implements BiometricService {}
+
 class FakeLoginParams extends Fake implements LoginParams {}
 class FakeRegisterUsecaseParams extends Fake implements RegisterUsecaseParams {}
 
 void main() {
   late MockLoginUsecase mockLoginUsecase;
   late MockRegisterUsecase mockRegisterUsecase;
+  late MockGetCurrentUserUsecase mockGetCurrentUserUsecase;
+  late MockBiometricService mockBiometricService;
+  late SharedPreferences prefs;
 
   setUpAll(() {
     registerFallbackValue(FakeLoginParams());
     registerFallbackValue(FakeRegisterUsecaseParams());
   });
 
-  setUp(() {
+  setUp(() async {
     mockLoginUsecase = MockLoginUsecase();
     mockRegisterUsecase = MockRegisterUsecase();
+    mockGetCurrentUserUsecase = MockGetCurrentUserUsecase();
+    mockBiometricService = MockBiometricService();
+
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+
+    // biometric login is off by default in these tests, so the
+    // fingerprint button doesn't appear and change what the existing
+    // tests below are asserting about the screen's contents
+    when(() => mockBiometricService.canCheckBiometrics())
+        .thenAnswer((_) async => false);
   });
 
   Widget buildLoginView() {
     return ProviderScope(
       overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
         loginUsecaseProvider.overrideWithValue(mockLoginUsecase),
         registerUsecaseProvider.overrideWithValue(mockRegisterUsecase),
+        getCurrentUserUsecaseProvider
+            .overrideWithValue(mockGetCurrentUserUsecase),
+        biometricServiceProvider.overrideWithValue(mockBiometricService),
       ],
       child: const MaterialApp(home: LoginView()),
     );
@@ -97,8 +126,13 @@ void main() {
       await tester.enterText(fields.at(0), 'test@gmail.com');
       await tester.enterText(fields.at(1), 'test123');
 
-      // tap Login button
-      await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+      // tap Login button — scroll it into view first, since the default
+      // test screen size (800x600) is too short to fit the whole form,
+      // so the button starts out below the visible area
+      final loginButton = find.widgetWithText(ElevatedButton, 'Login');
+      await tester.ensureVisible(loginButton);
+      await tester.pumpAndSettle();
+      await tester.tap(loginButton);
       await tester.pump();
 
       // assert — usecase was called with correct params
