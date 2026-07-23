@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
 import 'package:sikhsha_sathi/core/services/storage/user_session_service.dart';
 
+import '../../data/datasources/local/auth_local_datasource.dart';
 import '../../domain/usecases/get_current_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
@@ -124,11 +125,23 @@ result.fold(
 }
 
 // ================= BIOMETRIC LOGIN =================
-// Requires the user to have logged in successfully at least once before
-// (so a valid token + session is already cached), and to have opted in
-// via the toggle in Profile. This does NOT create a new session — it
-// just unlocks the one that's already saved on the device using
-// GET /auth/whoami with the cached token.
+// Restores the session bound to whichever account enabled fingerprint
+// login on this device (see UserSessionService.isBiometricLoginEnabled
+// for exactly how that binding is scoped, so a different account can't
+// inherit it).
+//
+// Deliberately restores from the LOCAL device cache directly, not via
+// GET /auth/whoami — after a logout, the auth token has been correctly
+// cleared, so an online whoami call would simply fail with 401. The
+// local cache is keyed by the bound account's userId regardless of
+// whether there's currently an active session, so this works
+// immediately after logging out of that same account.
+//
+// Note: this restores your identity/profile for DISPLAY purposes using
+// only what's cached on-device. If you're offline, other screens that
+// need to call the backend (Home, Search, etc.) will still need a real
+// network connection before they can load anything, since no fresh
+// token can be issued without contacting the server.
 
 Future<void> loginWithBiometric() async {
   final session = ref.read(userSessionServiceProvider);
@@ -166,35 +179,29 @@ Future<void> loginWithBiometric() async {
 
   state = state.copyWith(status: AuthStatus.loading);
 
-  final result = await _getCurrentUserUsecase(const CurrentUserParams());
+  final localDatasource = ref.read(authLocalDatasourceProvider);
+  final cachedUser = await localDatasource.getCurrentUser();
 
-  result.fold(
-    (failure) {
-      state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage:
-            "Session check failed: ${failure.message}",
-      );
-    },
-    (user) async {
-      // biometric login goes through GET /auth/whoami, which never
-      // touches UserSessionService the way a normal password login does
-      // (that happens inside auth_remote_datasource.dart's login()) —
-      // without this, ProfileTab/HomeTab keep showing whatever was left
-      // over from before logout (or nothing at all).
-      await session.saveUserSession(
-        userId: user.userId ?? "",
-        email: user.email,
-        fullName: user.fullName,
-        phoneNumber: user.phoneNumber,
-        profilePicture: user.profilePicture,
-      );
+  if (cachedUser == null) {
+    state = state.copyWith(
+      status: AuthStatus.error,
+      errorMessage:
+          "Could not find your saved account on this device. Please log in with your password.",
+    );
+    return;
+  }
 
-      state = state.copyWith(
-        status: AuthStatus.authenticated,
-        user: user,
-      );
-    },
+  await session.saveUserSession(
+    userId: cachedUser.userId,
+    email: cachedUser.email,
+    fullName: cachedUser.fullName,
+    phoneNumber: cachedUser.phoneNumber,
+    profilePicture: cachedUser.profilePicture,
+  );
+
+  state = state.copyWith(
+    status: AuthStatus.authenticated,
+    user: cachedUser.toEntity(),
   );
 }
 

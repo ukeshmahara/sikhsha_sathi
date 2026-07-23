@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sikhsha_sathi/core/error/failures.dart';
+import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
 import 'package:sikhsha_sathi/features/auth/domain/entities/auth_entity.dart';
+import 'package:sikhsha_sathi/features/auth/domain/usecases/get_current_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/domain/usecases/login_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/domain/usecases/register_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/state/auth_state.dart';
@@ -12,12 +14,22 @@ import 'package:sikhsha_sathi/features/auth/presentation/view_model/auth_view_mo
 class MockLoginUsecase extends Mock implements LoginUsecase {}
 class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 
+// NEW — AuthViewModel.build() now also reads these two providers (added
+// when fingerprint login was built). Without mocking them, build() falls
+// through to the REAL provider chain, which eventually needs
+// SharedPreferences and throws UnimplementedError — this was the actual
+// cause of every test in this file failing, not the test logic itself.
+class MockGetCurrentUserUsecase extends Mock implements GetCurrentUserUsecase {}
+class MockBiometricService extends Mock implements BiometricService {}
+
 class FakeLoginParams extends Fake implements LoginParams {}
 class FakeRegisterUsecaseParams extends Fake implements RegisterUsecaseParams {}
 
 void main() {
   late MockLoginUsecase mockLoginUsecase;
   late MockRegisterUsecase mockRegisterUsecase;
+  late MockGetCurrentUserUsecase mockGetCurrentUserUsecase;
+  late MockBiometricService mockBiometricService;
   late ProviderContainer container;
 
   setUpAll(() {
@@ -28,11 +40,16 @@ void main() {
   setUp(() {
     mockLoginUsecase = MockLoginUsecase();
     mockRegisterUsecase = MockRegisterUsecase();
+    mockGetCurrentUserUsecase = MockGetCurrentUserUsecase();
+    mockBiometricService = MockBiometricService();
 
     container = ProviderContainer(
       overrides: [
         loginUsecaseProvider.overrideWithValue(mockLoginUsecase),
         registerUsecaseProvider.overrideWithValue(mockRegisterUsecase),
+        getCurrentUserUsecaseProvider
+            .overrideWithValue(mockGetCurrentUserUsecase),
+        biometricServiceProvider.overrideWithValue(mockBiometricService),
       ],
     );
   });

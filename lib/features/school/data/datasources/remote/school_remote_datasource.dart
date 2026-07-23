@@ -3,44 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sikhsha_sathi/core/api/api_client.dart';
 import 'package:sikhsha_sathi/core/api/api_endpoints.dart';
 
+import 'package:sikhsha_sathi/features/school/data/datasources/school_datasource.dart';
 import 'package:sikhsha_sathi/features/school/data/models/school_api_model.dart';
-
-// ================= RESULT WRAPPER =================
-
-class SchoolRemoteListResult {
-  final List<SchoolApiModel> schools;
-  final int page;
-  final int limit;
-  final int total;
-  final int totalPages;
-
-  const SchoolRemoteListResult({
-    required this.schools,
-    required this.page,
-    required this.limit,
-    required this.total,
-    required this.totalPages,
-  });
-}
-
-// ================= INTERFACE =================
-
-abstract interface class ISchoolRemoteDataSource {
-  Future<SchoolRemoteListResult> getSchools({
-    required int page,
-    required int limit,
-    required String search,
-    required String category,
-    required String stream,
-    double? minFee,
-    double? maxFee,
-    required String sort,
-  });
-
-  Future<SchoolApiModel> getSchoolById(String id);
-
-  Future<Map<String, int>> getCategoryCounts();
-}
 
 // ================= PROVIDER =================
 

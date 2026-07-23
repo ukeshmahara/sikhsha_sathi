@@ -94,11 +94,18 @@ class _ChatbotPageState extends ConsumerState<ChatbotPage> {
       appBar: AppBar(
         backgroundColor: _kPrimaryBlue,
         foregroundColor: Colors.white,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.smart_toy_outlined, size: 20),
-            SizedBox(width: 8),
-            Text('AI school assistant'),
+            ClipOval(
+              child: Image.asset(
+                'assets/icons/chatbot.png',
+                width: 24,
+                height: 24,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Text('AI school assistant'),
           ],
         ),
         actions: [
@@ -127,12 +134,19 @@ class _ChatbotPageState extends ConsumerState<ChatbotPage> {
 
     if (state.messages.isEmpty) {
       return Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.smart_toy_outlined, size: 48, color: Colors.grey.shade400),
+              Opacity(
+                opacity: 0.5,
+                child: Image.asset(
+                  'assets/icons/chatbot.png',
+                  width: 72,
+                  height: 72,
+                ),
+              ),
               const SizedBox(height: 12),
               Text(
                 'Ask me anything about schools, admissions,\nor just say hello!',

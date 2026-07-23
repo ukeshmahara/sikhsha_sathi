@@ -106,6 +106,15 @@ try {
 }
 
 // ================= GET CURRENT USER =================
+// Two cases:
+//  1. There's an ACTIVE session (isLoggedIn true) — use its userId.
+//     This is the original behaviour, used e.g. when Profile checks
+//     the local cache as a fallback while offline but still logged in.
+//  2. There's NO active session (e.g. right after logout) — fall back
+//     to whichever account fingerprint login is bound to on this
+//     device, if any. This is what makes fingerprint login work again
+//     immediately after logging out of the SAME account, without
+//     depending on the (correctly, deliberately) cleared auth token.
 
 @override
 Future<AuthHiveModel?> getCurrentUser()
@@ -113,14 +122,13 @@ async {
 
 try {
 
-  if (!_userSessionService
-      .isLoggedIn()) {
-    return null;
-  }
+  String? userId;
 
-  final userId =
-      _userSessionService
-          .getUserId();
+  if (_userSessionService.isLoggedIn()) {
+    userId = _userSessionService.getUserId();
+  } else {
+    userId = _userSessionService.getBiometricUserId();
+  }
 
   if (userId == null) {
     return null;

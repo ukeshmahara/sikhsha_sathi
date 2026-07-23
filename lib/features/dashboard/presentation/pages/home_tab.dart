@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -30,6 +31,8 @@ class HomeTab extends ConsumerStatefulWidget {
 }
 
 class _HomeTabState extends ConsumerState<HomeTab> {
+  final ScrollController _categoryScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +42,12 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       ref.read(favouriteViewModelProvider.notifier).loadFavourites();
       ref.read(notificationViewModelProvider.notifier).loadNotifications();
     });
+  }
+
+  @override
+  void dispose() {
+    _categoryScrollController.dispose();
+    super.dispose();
   }
 
   Widget _buildNotificationBell(BuildContext context, WidgetRef ref) {
@@ -114,7 +123,10 @@ class _HomeTabState extends ConsumerState<HomeTab> {
         color: Colors.white.withValues(alpha: 0.2),
         shape: BoxShape.circle,
         image: imageUrl != null
-            ? DecorationImage(image: NetworkImage(imageUrl), fit: BoxFit.cover)
+            ? DecorationImage(
+                image: CachedNetworkImageProvider(imageUrl),
+                fit: BoxFit.cover,
+              )
             : null,
       ),
       child: imageUrl == null
@@ -245,15 +257,33 @@ class _HomeTabState extends ConsumerState<HomeTab> {
 
     return Scaffold(
       backgroundColor: context.appBackground,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: _kPrimaryBlue,
-        onPressed: () {
+      floatingActionButton: GestureDetector(
+        onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ChatbotPage()),
           );
         },
-        child: const Icon(Icons.smart_toy_outlined, color: Colors.white),
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: Image.asset(
+              'assets/icons/chatbot.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
       ),
       body: SafeArea(
         top: false,
@@ -419,11 +449,13 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                         // Search tab, no chip is ever shown as "selected"
                         // here since Home itself no longer filters anything
                         Scrollbar(
+                          controller: _categoryScrollController,
                           thumbVisibility: true,
                           trackVisibility: true,
                           thickness: 3,
                           radius: const Radius.circular(10),
                           child: SingleChildScrollView(
+                            controller: _categoryScrollController,
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.only(bottom: 10),
                             child: Row(

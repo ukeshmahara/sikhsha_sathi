@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/services/storage/user_session_service.dart';
 import '../../../auth/domain/usecases/get_current_usecase.dart';
+import '../../domain/usecases/update_profile_usecase.dart';
 import '../../domain/usecases/upload_profile_picture_usecase.dart';
 import '../state/profile_state.dart';
 
@@ -21,6 +22,9 @@ class ProfileViewModel
   late GetCurrentUserUsecase
       _getCurrentUserUsecase;
 
+  late UpdateProfileUsecase
+      _updateProfileUsecase;
+
   @override
   ProfileState build() {
     _uploadProfilePictureUsecase =
@@ -30,6 +34,10 @@ class ProfileViewModel
 
     _getCurrentUserUsecase = ref.read(
       getCurrentUserUsecaseProvider,
+    );
+
+    _updateProfileUsecase = ref.read(
+      updateProfileUsecaseProvider,
     );
 
     // load previously saved profile picture (persists across app restarts)
@@ -48,11 +56,16 @@ class ProfileViewModel
   // (no error shown, since stale-but-present data is fine for a profile
   // screen — this just quietly keeps things in sync when there's a
   // connection, rather than blindly trusting old SharedPreferences forever).
+  //
+  // NOTE: both fold() branches are `async` and the whole fold() call is
+  // awaited — dartz's Either.fold() does NOT wait for async callbacks on
+  // its own, so without this `await`, this method would return before the
+  // success branch's saveUserSession()/state update had actually finished.
   Future<void> refreshProfile() async {
     final result = await _getCurrentUserUsecase(const CurrentUserParams());
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         // offline or a real failure — keep showing whatever's already
         // cached rather than clearing the screen or showing an error,
         // since the user can still see their last-known profile info
@@ -87,8 +100,10 @@ class ProfileViewModel
       image,
     );
 
-    result.fold(
-      (failure) {
+    // both branches are async and the fold() itself is awaited — see the
+    // note on refreshProfile() above for why this matters
+    await result.fold(
+      (failure) async {
         state = state.copyWith(
           status: ProfileStatus.error,
           errorMessage:
@@ -116,6 +131,56 @@ class ProfileViewModel
   void clearError() {
     state = state.copyWith(
       errorMessage: null,
+    );
+  }
+
+  // Updates fullName/phone and optionally the password. Returns true/false
+  // so the Edit Profile screen knows whether to pop back or show the
+  // error inline (e.g. "Current password is incorrect").
+  Future<bool> updateProfile({
+    String? fullName,
+    String? phone,
+    String? currentPassword,
+    String? newPassword,
+  }) async {
+    state = state.copyWith(status: ProfileStatus.loading, errorMessage: null);
+
+    final result = await _updateProfileUsecase(
+      UpdateProfileParams(
+        fullName: fullName,
+        phone: phone,
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      ),
+    );
+
+    // both branches are async and the fold() itself is awaited — see the
+    // note on refreshProfile() above for why this matters
+    return await result.fold(
+      (failure) async {
+        state = state.copyWith(
+          status: ProfileStatus.error,
+          errorMessage: failure.message,
+        );
+        return false;
+      },
+      (updated) async {
+        final session = ref.read(userSessionServiceProvider);
+
+        await session.saveUserSession(
+          userId: session.getUserId() ?? '',
+          email: updated.email,
+          fullName: updated.fullName,
+          phoneNumber: updated.phone,
+          profilePicture: updated.profileImage ?? state.profilePicture,
+        );
+
+        state = state.copyWith(
+          status: ProfileStatus.loaded,
+          profilePicture: updated.profileImage ?? state.profilePicture,
+        );
+        return true;
+      },
     );
   }
 }

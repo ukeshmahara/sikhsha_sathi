@@ -6,6 +6,7 @@ import 'package:sikhsha_sathi/core/constants/hive_table_constant.dart';
 import 'package:sikhsha_sathi/features/auth/data/models/auth_hive_model.dart';
 import 'package:sikhsha_sathi/features/favourite/data/models/favourite_hive_model.dart';
 import 'package:sikhsha_sathi/features/notification/data/models/notification_hive_model.dart';
+import 'package:sikhsha_sathi/features/school/data/models/school_hive_model.dart';
 
 
 final hiveServiceProvider = Provider<HiveService>((ref) {
@@ -61,6 +62,24 @@ class HiveService {
         NotificationHiveModelAdapter(),
       );
     }
+
+    if (!Hive.isAdapterRegistered(
+      HiveTableConstant.schoolTypeId,
+    )) {
+
+      Hive.registerAdapter(
+        SchoolHiveModelAdapter(),
+      );
+    }
+
+    if (!Hive.isAdapterRegistered(
+      HiveTableConstant.categoryCountsTypeId,
+    )) {
+
+      Hive.registerAdapter(
+        CategoryCountsHiveModelAdapter(),
+      );
+    }
   }
 
   // ================= OPEN BOXES =================
@@ -78,13 +97,14 @@ class HiveService {
     await Hive.openBox<NotificationHiveModel>(
       HiveTableConstant.notificationTable,
     );
-  }
 
-  // ================= CLOSE DATABASE =================
+    await Hive.openBox<SchoolHiveModel>(
+      HiveTableConstant.schoolTable,
+    );
 
-  Future<void> close() async {
-
-    await Hive.close();
+    await Hive.openBox<CategoryCountsHiveModel>(
+      HiveTableConstant.categoryCountsTable,
+    );
   }
 
   // ===================================================
@@ -95,8 +115,6 @@ class HiveService {
       Hive.box<AuthHiveModel>(
         HiveTableConstant.authTable,
       );
-
-  // ================= REGISTER =================
 
   Future<AuthHiveModel> registerUser(
     AuthHiveModel model,
@@ -117,26 +135,27 @@ class HiveService {
     String password,
   ) async {
 
-    final users = _authBox.values.where(
-      (user) =>
-          user.email == email &&
-          user.password == password,
-    );
+    try {
+      final users = _authBox.values.where(
+        (user) =>
+            user.email == email &&
+            user.password == password,
+      );
 
-    if (users.isNotEmpty) {
-      return users.first;
+      return users.isNotEmpty
+          ? users.first
+          : null;
+    } catch (e) {
+      return null;
     }
-
-    return null;
   }
 
   // ================= GET CURRENT USER =================
 
   AuthHiveModel? getCurrentUser(
-    String authId,
+    String userId,
   ) {
-
-    return _authBox.get(authId);
+    return _authBox.get(userId);
   }
 
   // ================= CHECK EMAIL =================
@@ -245,5 +264,66 @@ class HiveService {
     for (final model in models) {
       await _notificationBox.put(model.id, model);
     }
+  }
+
+  // ===================================================
+  // SCHOOL QUERIES (offline cache)
+  // ===================================================
+
+  Box<SchoolHiveModel> get _schoolBox =>
+      Hive.box<SchoolHiveModel>(
+        HiveTableConstant.schoolTable,
+      );
+
+  // ================= GET ALL CACHED SCHOOLS =================
+
+  List<SchoolHiveModel> getCachedSchools() {
+    return _schoolBox.values.toList();
+  }
+
+  // ================= GET CACHED SCHOOL BY ID =================
+
+  SchoolHiveModel? getCachedSchoolById(String id) {
+    return _schoolBox.get(id);
+  }
+
+  // ================= REPLACE CACHE WITH FRESH DATA =================
+  // Called after every successful ONLINE fetch, so offline browsing
+  // always shows the most recently seen list rather than something
+  // stale from many sessions ago.
+
+  Future<void> replaceCachedSchools(
+    List<SchoolHiveModel> models,
+  ) async {
+    await _schoolBox.clear();
+
+    for (final model in models) {
+      if (model.id.isNotEmpty) {
+        await _schoolBox.put(model.id, model);
+      }
+    }
+  }
+
+  // ===================================================
+  // CATEGORY COUNTS CACHE (single stored entry)
+  // ===================================================
+
+  Box<CategoryCountsHiveModel> get _categoryCountsBox =>
+      Hive.box<CategoryCountsHiveModel>(
+        HiveTableConstant.categoryCountsTable,
+      );
+
+  static const String _categoryCountsKey = 'current';
+
+  Map<String, int> getCachedCategoryCounts() {
+    final cached = _categoryCountsBox.get(_categoryCountsKey);
+    return cached?.counts ?? {};
+  }
+
+  Future<void> cacheCategoryCounts(Map<String, int> counts) async {
+    await _categoryCountsBox.put(
+      _categoryCountsKey,
+      CategoryCountsHiveModel(counts: counts),
+    );
   }
 }

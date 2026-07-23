@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:sikhsha_sathi/core/error/failures.dart';
+import 'package:sikhsha_sathi/core/services/biometric/biometric_service.dart';
+import 'package:sikhsha_sathi/features/auth/domain/usecases/get_current_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/domain/usecases/login_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/domain/usecases/register_usecase.dart';
 import 'package:sikhsha_sathi/features/auth/presentation/pages/signup_view.dart';
@@ -12,12 +14,22 @@ import 'package:sikhsha_sathi/features/auth/presentation/pages/signup_view.dart'
 class MockLoginUsecase extends Mock implements LoginUsecase {}
 class MockRegisterUsecase extends Mock implements RegisterUsecase {}
 
+// NEW — SignupView shares AuthViewModel with LoginView, and
+// AuthViewModel.build() now reads these 2 providers as well (added for
+// fingerprint login). Even though SignupView never uses biometric
+// features directly, the SHARED viewmodel still needs them mocked for
+// build() to succeed — this is what was causing every test here to fail.
+class MockGetCurrentUserUsecase extends Mock implements GetCurrentUserUsecase {}
+class MockBiometricService extends Mock implements BiometricService {}
+
 class FakeLoginParams extends Fake implements LoginParams {}
 class FakeRegisterUsecaseParams extends Fake implements RegisterUsecaseParams {}
 
 void main() {
   late MockLoginUsecase mockLoginUsecase;
   late MockRegisterUsecase mockRegisterUsecase;
+  late MockGetCurrentUserUsecase mockGetCurrentUserUsecase;
+  late MockBiometricService mockBiometricService;
 
   setUpAll(() {
     registerFallbackValue(FakeLoginParams());
@@ -27,6 +39,8 @@ void main() {
   setUp(() {
     mockLoginUsecase = MockLoginUsecase();
     mockRegisterUsecase = MockRegisterUsecase();
+    mockGetCurrentUserUsecase = MockGetCurrentUserUsecase();
+    mockBiometricService = MockBiometricService();
   });
 
   Widget buildSignupView() {
@@ -34,6 +48,9 @@ void main() {
       overrides: [
         loginUsecaseProvider.overrideWithValue(mockLoginUsecase),
         registerUsecaseProvider.overrideWithValue(mockRegisterUsecase),
+        getCurrentUserUsecaseProvider
+            .overrideWithValue(mockGetCurrentUserUsecase),
+        biometricServiceProvider.overrideWithValue(mockBiometricService),
       ],
       child: const MaterialApp(home: SignupView()),
     );
